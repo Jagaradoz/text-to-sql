@@ -15,66 +15,24 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import {
-  Database,
-  LoaderCircle,
-  MessageSquare,
-  RefreshCcw,
-  Send,
-  Sparkles,
-  TableProperties,
-} from "lucide-react";
+import { Database, LoaderCircle, Send } from "lucide-react";
 import { ChartConfig, HistoryItem, QueryResponse, TableSchema } from "@/lib/api";
 import { useAppStore } from "@/store/useAppStore";
 
-const QUICK_SUGGESTIONS = [
-  "Top 5 products by revenue",
-  "Monthly order growth",
-  "Users from USA",
-];
-
 const PAGE_SIZE = 8;
 const SQL_KEYWORDS = new Set([
-  "select",
-  "from",
-  "where",
-  "group",
-  "by",
-  "order",
-  "limit",
-  "join",
-  "left",
-  "right",
-  "inner",
-  "outer",
-  "on",
-  "as",
-  "and",
-  "or",
-  "count",
-  "sum",
-  "avg",
-  "min",
-  "max",
-  "distinct",
-  "having",
-  "case",
-  "when",
-  "then",
-  "else",
-  "end",
-  "desc",
-  "asc",
+  "select", "from", "where", "group", "by", "order", "limit", "join",
+  "left", "right", "inner", "outer", "on", "as", "and", "or", "count",
+  "sum", "avg", "min", "max", "distinct", "having", "case", "when",
+  "then", "else", "end", "desc", "asc",
 ]);
 
 type TabKey = "data" | "visualization" | "details";
 
 export default function Home() {
-  const schema = useAppStore((state) => state.schema);
-  const history = useAppStore((state) => state.history);
-  const activeQuery = useAppStore((state) => state.activeQuery);
   const isLoading = useAppStore((state) => state.isLoading);
   const error = useAppStore((state) => state.error);
+  const activeQuery = useAppStore((state) => state.activeQuery);
   const getSchema = useAppStore((state) => state.getSchema);
   const getHistory = useAppStore((state) => state.getHistory);
   const submitQuery = useAppStore((state) => state.submitQuery);
@@ -102,10 +60,7 @@ export default function Home() {
 
   const handleSubmit = async (queryText?: string) => {
     const nextQuery = (queryText ?? input).trim();
-    if (!nextQuery || isLoading) {
-      return;
-    }
-
+    if (!nextQuery || isLoading) return;
     resetError();
     setInput(nextQuery);
     setCurrentPage(1);
@@ -113,290 +68,104 @@ export default function Home() {
     await submitQuery(nextQuery);
   };
 
-  const onSubmit = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
+  const onSubmit = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
     await handleSubmit();
   };
 
   return (
-    <div className="h-full overflow-hidden bg-[radial-gradient(circle_at_top_left,_rgba(255,255,255,0.08),_transparent_32%),linear-gradient(180deg,_rgba(255,255,255,0.03),_rgba(255,255,255,0))]">
-      <div className="grid h-full grid-cols-1 lg:grid-cols-[320px_minmax(0,1fr)]">
-        <Sidebar
-          schema={schema}
-          history={history}
-          isLoading={isLoading}
-          onRefresh={() => {
-            void getSchema();
-            void getHistory();
-          }}
-          onReuseQuery={(query) => {
-            setInput(query);
-            void handleSubmit(query);
-          }}
-        />
-
-        <main className="flex h-full min-h-0 flex-col overflow-hidden border-t border-border/60 lg:border-l lg:border-t-0">
-          <section className="border-b border-border/60 px-6 py-6 sm:px-8">
-            <div className="flex flex-col gap-6">
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                <div className="space-y-2">
-                  <div className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-secondary/50 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.24em] text-muted-foreground">
-                    <Sparkles className="h-3.5 w-3.5" />
-                    Phase 5 Dashboard
-                  </div>
-                  <div>
-                    <h1 className="text-3xl font-semibold tracking-tight">
-                      Ask questions, inspect the SQL, and explore the result set.
-                    </h1>
-                    <p className="mt-2 max-w-3xl text-sm text-muted-foreground">
-                      Natural language in, schema-aware SQL out. The workspace updates with raw rows,
-                      visualization hints, and query details from the backend agent.
-                    </p>
-                  </div>
-                </div>
-                <div className="rounded-2xl border border-border/60 bg-card/80 px-4 py-3 shadow-[0_20px_80px_-40px_rgba(255,255,255,0.3)]">
-                  <div className="flex items-center gap-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-primary/10 text-primary">
-                      <Database className="h-5 w-5" />
-                    </div>
-                    <div>
-                      <p className="text-xs font-semibold uppercase tracking-[0.24em] text-muted-foreground">
-                        Model Status
-                      </p>
-                      <p className="mt-1 flex items-center gap-2 text-sm font-medium">
-                        <span className="h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_16px_rgba(74,222,128,0.7)]" />
-                        GPT-4o Connected
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <form onSubmit={onSubmit} className="space-y-4">
-                <div className="relative">
-                  <div className="absolute -inset-0.5 rounded-[28px] bg-gradient-to-r from-primary/25 via-white/8 to-transparent opacity-80 blur-lg" />
-                  <div className="relative rounded-[24px] border border-border/70 bg-card/95 p-3 shadow-2xl">
-                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-                      <div className="flex flex-1 items-center gap-3 rounded-2xl border border-border/60 bg-background/80 px-4 py-3">
-                        <MessageSquare className="h-5 w-5 shrink-0 text-muted-foreground" />
-                        <input
-                          value={input}
-                          onChange={(event) => setInput(event.target.value)}
-                          placeholder="e.g. Total revenue by month for the last year..."
-                          className="w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground/70"
-                        />
-                      </div>
-                      <button
-                        type="submit"
-                        disabled={isLoading || input.trim().length === 0}
-                        className="inline-flex items-center justify-center gap-2 rounded-2xl bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground transition disabled:cursor-not-allowed disabled:opacity-60"
-                      >
-                        {isLoading ? (
-                          <>
-                            <LoaderCircle className="h-4 w-4 animate-spin" />
-                            Generating
-                          </>
-                        ) : (
-                          <>
-                            Run Query
-                            <Send className="h-4 w-4" />
-                          </>
-                        )}
-                      </button>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex flex-wrap gap-2">
-                  {QUICK_SUGGESTIONS.map((tip) => (
-                    <button
-                      key={tip}
-                      type="button"
-                      onClick={() => {
-                        setInput(tip);
-                        void handleSubmit(tip);
-                      }}
-                      className="rounded-full border border-border/60 bg-secondary/40 px-3 py-1.5 text-xs font-medium text-muted-foreground transition hover:border-primary/40 hover:bg-secondary/80 hover:text-foreground"
-                    >
-                      {tip}
-                    </button>
-                  ))}
-                </div>
-
-                {error ? (
-                  <div className="rounded-2xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">
-                    {error}
-                  </div>
-                ) : null}
-              </form>
-            </div>
-          </section>
-
-          <section className="min-h-0 flex-1 overflow-hidden px-6 py-6 sm:px-8">
-            <ResultsWorkspace
-              activeQuery={activeQuery}
-              activeTab={activeTab}
-              currentPage={currentPage}
-              isLoading={isLoading}
-              paginatedRows={paginatedRows}
-              rows={rows}
-              setActiveTab={setActiveTab}
-              setCurrentPage={setCurrentPage}
-              tableColumns={tableColumns}
-              totalPages={totalPages}
-              onSuggestionClick={(query) => {
-                setInput(query);
-                void handleSubmit(query);
-              }}
-            />
-          </section>
-        </main>
+    <div className="space-y-10">
+      {/* Hero heading */}
+      <div>
+        <h1 className="text-6xl font-black uppercase leading-none tracking-tight sm:text-7xl">
+          Ask Your
+          <br />
+          Database
+        </h1>
       </div>
-    </div>
-  );
-}
 
-function Sidebar({
-  history,
-  isLoading,
-  onRefresh,
-  onReuseQuery,
-  schema,
-}: {
-  history: HistoryItem[];
-  isLoading: boolean;
-  onRefresh: () => void;
-  onReuseQuery: (query: string) => void;
-  schema: TableSchema[];
-}) {
-  return (
-    <aside className="flex min-h-0 flex-col overflow-hidden border-b border-border/60 bg-card/70 backdrop-blur lg:border-b-0">
-      <div className="border-b border-border/60 px-5 py-5">
-        <div className="flex items-start justify-between gap-3">
-          <div>
-            <h2 className="text-xl font-semibold tracking-tight">Data Assistant</h2>
-            <p className="mt-1 text-xs uppercase tracking-[0.24em] text-muted-foreground">
-              Schema + History
+      {/* Query box */}
+      <form onSubmit={onSubmit}>
+        <div className="rounded-md border border-border bg-card p-4">
+          <textarea
+            id="query-input"
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
+                e.preventDefault();
+                void handleSubmit();
+              }
+            }}
+            placeholder="e.g. Show total revenue by product category..."
+            rows={4}
+            className="w-full resize-none bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground"
+          />
+          <div className="mt-3 flex items-center justify-between">
+            <p className="text-[11px] text-muted-foreground">
+              Press {typeof window !== "undefined" && navigator.platform.includes("Mac") ? "⌘" : "Ctrl"}+Enter to run
             </p>
+            <button
+              id="execute-btn"
+              type="submit"
+              disabled={isLoading || input.trim().length === 0}
+              className="inline-flex items-center gap-2 rounded bg-foreground px-5 py-2.5 text-xs font-bold uppercase tracking-widest text-background transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {isLoading ? (
+                <>
+                  <LoaderCircle className="h-3.5 w-3.5 animate-spin" />
+                  Running
+                </>
+              ) : (
+                <>
+                  Execute
+                  <Send className="h-3.5 w-3.5" />
+                </>
+              )}
+            </button>
           </div>
-          <button
-            type="button"
-            onClick={onRefresh}
-            className="rounded-xl border border-border/60 bg-secondary/60 p-2 text-muted-foreground transition hover:text-foreground"
-            aria-label="Refresh sidebar data"
-          >
-            <RefreshCcw className={`h-4 w-4 ${isLoading ? "animate-spin" : ""}`} />
-          </button>
         </div>
+
+        {error ? (
+          <div className="mt-3 rounded-md border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">
+            {error}
+          </div>
+        ) : null}
+      </form>
+
+      {/* Results section */}
+      <div className="space-y-4">
+        <div>
+          <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-muted-foreground">
+            Results
+          </h2>
+          <hr className="mt-2 border-border" />
+        </div>
+
+        <ResultsPanel
+          activeQuery={activeQuery}
+          activeTab={activeTab}
+          currentPage={currentPage}
+          isLoading={isLoading}
+          paginatedRows={paginatedRows}
+          rows={rows}
+          setActiveTab={setActiveTab}
+          setCurrentPage={setCurrentPage}
+          tableColumns={tableColumns}
+          totalPages={totalPages}
+        />
       </div>
-
-      <div className="scroll-thin flex-1 space-y-6 overflow-y-auto px-4 py-5">
-        <section className="space-y-3">
-          <div className="flex items-center gap-2 px-2">
-            <Database className="h-4 w-4 text-muted-foreground" />
-            <h3 className="text-xs font-semibold uppercase tracking-[0.24em] text-muted-foreground">
-              Database Schema
-            </h3>
-          </div>
-          <div className="space-y-3">
-            {schema.length === 0 ? (
-              <EmptySidebarState label="No schema loaded yet." />
-            ) : (
-              schema.map((table) => (
-                <div
-                  key={table.table_name}
-                  className="rounded-2xl border border-border/60 bg-background/60 p-4"
-                >
-                  <div className="flex items-center justify-between gap-3">
-                    <div>
-                      <p className="text-sm font-semibold">{table.table_name}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {table.columns.length} columns
-                      </p>
-                    </div>
-                    <span className="rounded-full border border-border/60 px-2 py-1 text-[10px] uppercase tracking-[0.24em] text-muted-foreground">
-                      {table.foreign_keys.length} fk
-                    </span>
-                  </div>
-                  <div className="mt-3 space-y-2">
-                    {table.columns.map((column) => (
-                      <div
-                        key={`${table.table_name}-${column.name}`}
-                        className="flex items-center justify-between gap-3 rounded-xl bg-card/70 px-3 py-2 text-xs"
-                      >
-                        <span className="font-medium">{column.name}</span>
-                        <span className="text-muted-foreground">{column.type}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
-        </section>
-
-        <section className="space-y-3">
-          <div className="flex items-center gap-2 px-2">
-            <TableProperties className="h-4 w-4 text-muted-foreground" />
-            <h3 className="text-xs font-semibold uppercase tracking-[0.24em] text-muted-foreground">
-              Query History
-            </h3>
-          </div>
-          <div className="space-y-3">
-            {history.length === 0 ? (
-              <EmptySidebarState label="No saved queries yet." />
-            ) : (
-              history.map((item) => (
-                <button
-                  key={item.id}
-                  type="button"
-                  onClick={() => onReuseQuery(item.natural_language_query)}
-                  className="block w-full rounded-2xl border border-border/60 bg-background/60 p-4 text-left transition hover:border-primary/30 hover:bg-card"
-                >
-                  <div className="flex items-center justify-between gap-3">
-                    <span
-                      className={`rounded-full px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.24em] ${
-                        item.execution_status === "SUCCESS"
-                          ? "bg-emerald-500/15 text-emerald-300"
-                          : "bg-red-500/15 text-red-300"
-                      }`}
-                    >
-                      {item.execution_status}
-                    </span>
-                    <span className="text-[11px] text-muted-foreground">
-                      {formatDate(item.created_at)}
-                    </span>
-                  </div>
-                  <p className="mt-3 line-clamp-2 text-sm font-medium">
-                    {item.natural_language_query}
-                  </p>
-                  <p className="mt-2 line-clamp-2 text-xs text-muted-foreground">
-                    {item.generated_sql}
-                  </p>
-                </button>
-              ))
-            )}
-          </div>
-        </section>
-      </div>
-    </aside>
-  );
-}
-
-function EmptySidebarState({ label }: { label: string }) {
-  return (
-    <div className="rounded-2xl border border-dashed border-border/60 bg-background/40 px-4 py-6 text-center text-sm text-muted-foreground">
-      {label}
     </div>
   );
 }
 
-function ResultsWorkspace({
+/* ─── Results Panel ─────────────────────────────────────────────────────── */
+
+function ResultsPanel({
   activeQuery,
   activeTab,
   currentPage,
   isLoading,
-  onSuggestionClick,
   paginatedRows,
   rows,
   setActiveTab,
@@ -414,163 +183,75 @@ function ResultsWorkspace({
   setCurrentPage: (page: number) => void;
   tableColumns: string[];
   totalPages: number;
-  onSuggestionClick: (query: string) => void;
 }) {
+  /* Empty / awaiting state */
+  if (!activeQuery && !isLoading) {
+    return (
+      <div className="results-hatch flex min-h-[260px] flex-col items-center justify-center gap-3 rounded-md border border-border">
+        <Database className="h-10 w-10 text-muted-foreground/50" />
+        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+          Awaiting Query
+        </p>
+      </div>
+    );
+  }
+
+  /* Loading overlay */
+  if (isLoading) {
+    return (
+      <div className="flex min-h-[260px] flex-col items-center justify-center gap-3 rounded-md border border-border bg-card">
+        <LoaderCircle className="h-8 w-8 animate-spin text-muted-foreground" />
+        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+          Generating SQL…
+        </p>
+      </div>
+    );
+  }
+
   return (
-    <div className="relative flex h-full min-h-[420px] flex-col overflow-hidden rounded-[28px] border border-border/60 bg-card/90 shadow-[0_30px_120px_-60px_rgba(255,255,255,0.25)]">
-      <div className="border-b border-border/60 px-4 py-3">
-        <div className="flex flex-wrap gap-2">
-          {[
-            { key: "data", label: "Data View" },
-            { key: "visualization", label: "Visualization" },
-            { key: "details", label: "Query Details" },
-          ].map((tab) => (
-            <button
-              key={tab.key}
-              type="button"
-              onClick={() => setActiveTab(tab.key as TabKey)}
-              className={`rounded-2xl px-4 py-2 text-sm font-medium transition ${
-                activeTab === tab.key
-                  ? "bg-primary text-primary-foreground"
-                  : "bg-secondary/50 text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </div>
+    <div className="rounded-md border border-border bg-card">
+      {/* Tabs */}
+      <div className="flex gap-0 border-b border-border">
+        {(["data", "visualization", "details"] as TabKey[]).map((tab) => (
+          <button
+            key={tab}
+            type="button"
+            onClick={() => setActiveTab(tab)}
+            className={`px-5 py-3 text-xs font-semibold uppercase tracking-widest transition ${
+              activeTab === tab
+                ? "border-b-2 border-foreground text-foreground"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            {tab === "data" ? "Data View" : tab === "visualization" ? "Visualization" : "Query Details"}
+          </button>
+        ))}
       </div>
 
-      <div className="relative min-h-0 flex-1 overflow-hidden">
-        {isLoading ? <LoadingOverlay /> : null}
-
-        {!activeQuery ? (
-          <EmptyWorkspace onSuggestionClick={onSuggestionClick} />
-        ) : (
-          <>
-            {activeTab === "data" ? (
-              <DataView
-                currentPage={currentPage}
-                paginatedRows={paginatedRows}
-                rows={rows}
-                setCurrentPage={setCurrentPage}
-                tableColumns={tableColumns}
-                totalPages={totalPages}
-              />
-            ) : null}
-
-            {activeTab === "visualization" ? (
-              <VisualizationView chartConfig={activeQuery.chart_config} rows={rows} />
-            ) : null}
-
-            {activeTab === "details" ? (
-              <QueryDetailsView
-                explanation={activeQuery.explanation}
-                sql={activeQuery.sql}
-              />
-            ) : null}
-          </>
+      {/* Tab content */}
+      <div className="min-h-[260px]">
+        {activeTab === "data" && (
+          <DataView
+            currentPage={currentPage}
+            paginatedRows={paginatedRows}
+            rows={rows}
+            setCurrentPage={setCurrentPage}
+            tableColumns={tableColumns}
+            totalPages={totalPages}
+          />
+        )}
+        {activeTab === "visualization" && activeQuery && (
+          <VisualizationView chartConfig={activeQuery.chart_config} rows={rows} />
+        )}
+        {activeTab === "details" && activeQuery && (
+          <QueryDetailsView explanation={activeQuery.explanation} sql={activeQuery.sql} />
         )}
       </div>
     </div>
   );
 }
 
-function EmptyWorkspace({ onSuggestionClick }: { onSuggestionClick: (query: string) => void }) {
-  return (
-    <div className="scroll-thin flex h-full flex-col items-center justify-center overflow-y-auto px-6 py-12 text-center">
-      <div className="w-full max-w-2xl rounded-3xl border border-border/60 bg-background/50 p-8 shadow-sm">
-        <Sparkles className="mx-auto mb-6 h-12 w-12 text-primary/70" />
-        <h3 className="text-2xl font-semibold tracking-tight">Your data, ready to explore</h3>
-        <p className="mx-auto mt-3 max-w-lg text-[15px] leading-relaxed text-muted-foreground">
-          Ask a question in plain English, and the AI will generate the SQL, fetch the data,
-          and automatically create a chart. Try one of the suggestions below to get started.
-        </p>
-
-        <div className="mt-10 grid grid-cols-1 gap-3 text-left sm:grid-cols-2">
-          {[
-            {
-              title: "Revenue by category",
-              query: "Show total revenue grouped by product category, ordered highest to lowest.",
-            },
-            {
-              title: "Recent high-value orders",
-              query: "Find the 10 most recent orders where the total amount was above $1000.",
-            },
-            {
-              title: "Top customers",
-              query: "Who are our top 5 customers by total lifetime spend?",
-            },
-            {
-              title: "Monthly growth",
-              query: "Show me the total number of orders placed each month this year.",
-            },
-          ].map((card, i) => (
-            <button
-              key={i}
-              type="button"
-              onClick={() => onSuggestionClick(card.query)}
-              className="group flex flex-col justify-center rounded-2xl border border-border/60 bg-card/60 p-5 transition-all focus:outline-none hover:scale-[1.02] hover:border-primary/50 hover:bg-card hover:shadow-lg"
-            >
-              <span className="text-[15px] font-semibold">{card.title}</span>
-              <span className="mt-1 line-clamp-2 text-xs font-medium text-muted-foreground">
-                &ldquo;{card.query}&rdquo;
-              </span>
-            </button>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-const LOADING_STEPS = [
-  "Reading schema contexts...",
-  "Synthesizing SQL query...",
-  "Executing sequence safely...",
-  "Structuring visualizations...",
-];
-
-function LoadingOverlay() {
-  const [step, setStep] = useState(0);
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setStep((prev) => Math.min(LOADING_STEPS.length - 1, prev + 1));
-    }, 1200);
-    return () => clearInterval(timer);
-  }, []);
-
-  return (
-    <div className="absolute inset-0 z-10 flex items-center justify-center bg-background/65 backdrop-blur-sm transition-all duration-300">
-      <div className="w-full max-w-md rounded-[28px] border border-border/60 bg-card/90 p-8 shadow-[0_20px_40px_-20px_rgba(0,0,0,0.3)]">
-        <div className="flex flex-col items-center gap-6 text-center">
-          <div className="relative flex h-14 w-14 items-center justify-center bg-primary/10 rounded-2xl">
-            <div className="absolute inset-0 border-2 border-primary/20 rounded-2xl" />
-            <div className="absolute inset-0 border-t-2 border-primary rounded-2xl animate-[spin_3s_linear_infinite]" />
-            <LoaderCircle className="h-6 w-6 text-primary animate-pulse" />
-          </div>
-          <div>
-            <h3 className="text-base font-semibold tracking-tight">Generating Insight</h3>
-            <p className="mt-2 h-5 text-sm text-muted-foreground transition-all duration-300">
-              {LOADING_STEPS[step]}
-            </p>
-          </div>
-        </div>
-        <div className="flex gap-2 mt-8">
-          {LOADING_STEPS.map((_, i) => (
-            <div
-              key={i}
-              className={`h-1.5 flex-1 rounded-full transition-all duration-500 ${
-                i <= step ? "bg-primary" : "bg-secondary"
-              }`}
-            />
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-}
+/* ─── Data View ─────────────────────────────────────────────────────────── */
 
 function DataView({
   currentPage,
@@ -589,46 +270,43 @@ function DataView({
 }) {
   if (rows.length === 0) {
     return (
-      <div className="flex h-full items-center justify-center px-6 text-center text-sm text-muted-foreground">
+      <div className="flex h-[260px] items-center justify-center text-sm text-muted-foreground">
         The query completed, but no rows were returned.
       </div>
     );
   }
 
   return (
-    <div className="flex h-full min-h-0 flex-col">
-      <div className="flex items-center justify-between border-b border-border/60 px-5 py-4">
-        <div>
-          <p className="text-sm font-semibold">Raw Result Set</p>
-          <p className="text-xs text-muted-foreground">
-            {rows.length} rows across {tableColumns.length} columns
-          </p>
-        </div>
-        <div className="text-xs text-muted-foreground">
+    <div className="flex flex-col">
+      <div className="flex items-center justify-between border-b border-border px-5 py-3">
+        <p className="text-xs text-muted-foreground">
+          {rows.length} rows · {tableColumns.length} columns
+        </p>
+        <p className="text-xs text-muted-foreground">
           Page {currentPage} of {totalPages}
-        </div>
+        </p>
       </div>
 
-      <div className="scroll-thin min-h-0 flex-1 overflow-auto">
-        <table className="min-w-full divide-y divide-border/60 text-sm">
-          <thead className="sticky top-0 bg-card/95 backdrop-blur">
+      <div className="scroll-thin overflow-auto">
+        <table className="min-w-full divide-y divide-border text-sm">
+          <thead className="bg-card">
             <tr>
-              {tableColumns.map((column) => (
+              {tableColumns.map((col) => (
                 <th
-                  key={column}
-                  className="whitespace-nowrap px-5 py-3 text-left text-[11px] font-semibold uppercase tracking-[0.24em] text-muted-foreground"
+                  key={col}
+                  className="whitespace-nowrap px-5 py-3 text-left text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground"
                 >
-                  {column}
+                  {col}
                 </th>
               ))}
             </tr>
           </thead>
           <tbody className="divide-y divide-border/40">
-            {paginatedRows.map((row, index) => (
-              <tr key={`row-${currentPage}-${index}`} className="hover:bg-background/60">
-                {tableColumns.map((column) => (
-                  <td key={`${column}-${index}`} className="px-5 py-3 align-top text-muted-foreground">
-                    <span className="text-foreground">{formatCellValue(row[column])}</span>
+            {paginatedRows.map((row, i) => (
+              <tr key={`row-${currentPage}-${i}`} className="hover:bg-secondary/30">
+                {tableColumns.map((col) => (
+                  <td key={`${col}-${i}`} className="px-5 py-3 text-sm text-muted-foreground">
+                    <span className="text-foreground">{formatCellValue(row[col])}</span>
                   </td>
                 ))}
               </tr>
@@ -637,16 +315,16 @@ function DataView({
         </table>
       </div>
 
-      <div className="flex items-center justify-between border-t border-border/60 px-5 py-4">
+      <div className="flex items-center justify-between border-t border-border px-5 py-3">
         <p className="text-xs text-muted-foreground">
-          Showing {(currentPage - 1) * PAGE_SIZE + 1}-{Math.min(currentPage * PAGE_SIZE, rows.length)} of {rows.length}
+          Showing {(currentPage - 1) * PAGE_SIZE + 1}–{Math.min(currentPage * PAGE_SIZE, rows.length)} of {rows.length}
         </p>
-        <div className="flex items-center gap-2">
+        <div className="flex gap-2">
           <button
             type="button"
             onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
             disabled={currentPage === 1}
-            className="rounded-xl border border-border/60 px-3 py-2 text-xs font-medium text-muted-foreground transition hover:text-foreground disabled:cursor-not-allowed disabled:opacity-40"
+            className="rounded border border-border px-3 py-1.5 text-xs text-muted-foreground transition hover:text-foreground disabled:cursor-not-allowed disabled:opacity-40"
           >
             Previous
           </button>
@@ -654,7 +332,7 @@ function DataView({
             type="button"
             onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
             disabled={currentPage === totalPages}
-            className="rounded-xl border border-border/60 px-3 py-2 text-xs font-medium text-muted-foreground transition hover:text-foreground disabled:cursor-not-allowed disabled:opacity-40"
+            className="rounded border border-border px-3 py-1.5 text-xs text-muted-foreground transition hover:text-foreground disabled:cursor-not-allowed disabled:opacity-40"
           >
             Next
           </button>
@@ -664,33 +342,26 @@ function DataView({
   );
 }
 
-function VisualizationView({
-  chartConfig,
-  rows,
-}: {
-  chartConfig: ChartConfig;
-  rows: Record<string, unknown>[];
-}) {
+/* ─── Visualization View ────────────────────────────────────────────────── */
+
+function VisualizationView({ chartConfig, rows }: { chartConfig: ChartConfig; rows: Record<string, unknown>[] }) {
   const resolvedChart = useMemo(() => getResolvedChart(rows, chartConfig), [chartConfig, rows]);
 
   if (!resolvedChart) {
     return (
-      <div className="flex h-full items-center justify-center px-6 text-center text-sm text-muted-foreground">
-        Not enough structured numeric data to render a chart for this result set.
+      <div className="flex h-[260px] items-center justify-center text-sm text-muted-foreground">
+        Not enough structured numeric data to render a chart.
       </div>
     );
   }
 
   return (
-    <div className="flex h-full min-h-0 flex-col">
-      <div className="border-b border-border/60 px-5 py-4">
-        <p className="text-sm font-semibold">Visualization</p>
-        <p className="text-xs text-muted-foreground">
-          {resolvedChart.type.toUpperCase()} chart using <span className="text-foreground">{resolvedChart.xAxis}</span> on X and{" "}
-          <span className="text-foreground">{resolvedChart.yAxis}</span> on Y.
-        </p>
-      </div>
-      <div className="min-h-0 flex-1 p-5">
+    <div className="p-5">
+      <p className="mb-4 text-xs text-muted-foreground">
+        {resolvedChart.type.toUpperCase()} chart · X: <span className="text-foreground">{resolvedChart.xAxis}</span> · Y:{" "}
+        <span className="text-foreground">{resolvedChart.yAxis}</span>
+      </p>
+      <div className="h-64">
         <ResponsiveContainer width="100%" height="100%">
           {renderChart(resolvedChart)}
         </ResponsiveContainer>
@@ -699,30 +370,32 @@ function VisualizationView({
   );
 }
 
-function QueryDetailsView({
-  explanation,
-  sql,
-}: {
-  explanation: string;
-  sql: string;
-}) {
+/* ─── Query Details View ────────────────────────────────────────────────── */
+
+function QueryDetailsView({ explanation, sql }: { explanation: string; sql: string }) {
   return (
-    <div className="grid h-full min-h-0 grid-cols-1 gap-0 lg:grid-cols-[1.15fr_0.85fr]">
-      <div className="scroll-thin min-h-0 overflow-auto border-b border-border/60 p-5 lg:border-b-0 lg:border-r">
-        <p className="text-sm font-semibold">Generated SQL</p>
-        <pre className="mt-4 overflow-x-auto rounded-[24px] border border-border/60 bg-background/70 p-5 text-sm leading-7">
+    <div className="grid grid-cols-1 gap-0 lg:grid-cols-2">
+      <div className="scroll-thin overflow-auto border-b border-border p-5 lg:border-b-0 lg:border-r">
+        <p className="mb-3 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+          Generated SQL
+        </p>
+        <pre className="overflow-x-auto rounded border border-border bg-secondary/30 p-4 text-sm leading-7">
           <code>{highlightSql(sql)}</code>
         </pre>
       </div>
-      <div className="scroll-thin min-h-0 overflow-auto p-5">
-        <p className="text-sm font-semibold">AI Explanation</p>
-        <div className="mt-4 rounded-[24px] border border-border/60 bg-background/70 p-5 text-sm leading-7 text-muted-foreground">
+      <div className="scroll-thin overflow-auto p-5">
+        <p className="mb-3 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+          AI Explanation
+        </p>
+        <div className="rounded border border-border bg-secondary/30 p-4 text-sm leading-7 text-muted-foreground">
           {explanation || "No explanation was returned by the backend."}
         </div>
       </div>
     </div>
   );
 }
+
+/* ─── Chart helpers (unchanged logic) ───────────────────────────────────── */
 
 function renderChart(chart: ResolvedChart) {
   const { type, rows, xAxis, yAxis } = chart;
@@ -733,9 +406,7 @@ function renderChart(chart: ResolvedChart) {
         <CartesianGrid stroke="rgba(255,255,255,0.08)" vertical={false} />
         <XAxis dataKey={xAxis} stroke="#a1a1aa" tickLine={false} axisLine={false} />
         <YAxis stroke="#a1a1aa" tickLine={false} axisLine={false} />
-        <Tooltip
-          contentStyle={{ backgroundColor: "#111113", border: "1px solid #27272a", borderRadius: 16 }}
-        />
+        <Tooltip contentStyle={{ backgroundColor: "#111113", border: "1px solid #27272a", borderRadius: 8 }} />
         <Line type="monotone" dataKey={yAxis} stroke="#f5f5f5" strokeWidth={2.5} dot={{ r: 3 }} />
       </LineChart>
     );
@@ -744,15 +415,10 @@ function renderChart(chart: ResolvedChart) {
   if (type === "pie") {
     return (
       <PieChart>
-        <Tooltip
-          contentStyle={{ backgroundColor: "#111113", border: "1px solid #27272a", borderRadius: 16 }}
-        />
+        <Tooltip contentStyle={{ backgroundColor: "#111113", border: "1px solid #27272a", borderRadius: 8 }} />
         <Pie data={rows} dataKey={yAxis} nameKey={xAxis} innerRadius={70} outerRadius={110} paddingAngle={3}>
           {rows.map((entry, index) => (
-            <Cell
-              key={`cell-${String(entry[xAxis])}-${index}`}
-              fill={PIE_COLORS[index % PIE_COLORS.length]}
-            />
+            <Cell key={`cell-${String(entry[xAxis])}-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
           ))}
         </Pie>
       </PieChart>
@@ -764,10 +430,8 @@ function renderChart(chart: ResolvedChart) {
       <CartesianGrid stroke="rgba(255,255,255,0.08)" vertical={false} />
       <XAxis dataKey={xAxis} stroke="#a1a1aa" tickLine={false} axisLine={false} />
       <YAxis stroke="#a1a1aa" tickLine={false} axisLine={false} />
-      <Tooltip
-        contentStyle={{ backgroundColor: "#111113", border: "1px solid #27272a", borderRadius: 16 }}
-      />
-      <Bar dataKey={yAxis} radius={[10, 10, 0, 0]} fill="#e5e7eb" />
+      <Tooltip contentStyle={{ backgroundColor: "#111113", border: "1px solid #27272a", borderRadius: 8 }} />
+      <Bar dataKey={yAxis} radius={[6, 6, 0, 0]} fill="#e5e7eb" />
     </BarChart>
   );
 }
@@ -781,148 +445,78 @@ interface ResolvedChart {
   yAxis: string;
 }
 
-function getResolvedChart(
-  rows: Record<string, unknown>[],
-  chartConfig: ChartConfig,
-): ResolvedChart | null {
-  if (rows.length === 0) {
-    return null;
-  }
-
+function getResolvedChart(rows: Record<string, unknown>[], chartConfig: ChartConfig): ResolvedChart | null {
+  if (rows.length === 0) return null;
   const columns = Object.keys(rows[0]);
-  const numericColumns = columns.filter((column) =>
-    rows.some((row) => isNumberLike(row[column])),
-  );
-  const categoricalColumns = columns.filter((column) => !numericColumns.includes(column));
-
-  const yAxis = numericColumns.includes(chartConfig.y_axis)
-    ? chartConfig.y_axis
-    : numericColumns[0];
-  const xAxis = columns.includes(chartConfig.x_axis)
-    ? chartConfig.x_axis
-    : categoricalColumns[0] ?? columns[0];
-
-  if (!xAxis || !yAxis) {
-    return null;
-  }
-
+  const numericColumns = columns.filter((col) => rows.some((row) => isNumberLike(row[col])));
+  const categoricalColumns = columns.filter((col) => !numericColumns.includes(col));
+  const yAxis = numericColumns.includes(chartConfig.y_axis) ? chartConfig.y_axis : numericColumns[0];
+  const xAxis = columns.includes(chartConfig.x_axis) ? chartConfig.x_axis : categoricalColumns[0] ?? columns[0];
+  if (!xAxis || !yAxis) return null;
   const type = resolveChartType(chartConfig.type, rows, xAxis, yAxis);
   return {
-    rows: rows.map((row) => ({
-      ...row,
-      [yAxis]: toChartNumber(row[yAxis]),
-    })),
+    rows: rows.map((row) => ({ ...row, [yAxis]: toChartNumber(row[yAxis]) })),
     type,
     xAxis,
     yAxis,
   };
 }
 
-function resolveChartType(
-  type: string,
-  rows: Record<string, unknown>[],
-  xAxis: string,
-  yAxis: string,
-): "bar" | "line" | "pie" {
-  if (type === "line" || type === "bar" || type === "pie") {
-    return type;
-  }
-
-  if (rows.length <= 6 && isNumberLike(rows[0][yAxis]) && typeof rows[0][xAxis] === "string") {
-    return "pie";
-  }
-
+function resolveChartType(type: string, rows: Record<string, unknown>[], xAxis: string, yAxis: string): "bar" | "line" | "pie" {
+  if (type === "line" || type === "bar" || type === "pie") return type;
+  if (rows.length <= 6 && isNumberLike(rows[0][yAxis]) && typeof rows[0][xAxis] === "string") return "pie";
   return "bar";
 }
+
+/* ─── Utility functions (unchanged) ─────────────────────────────────────── */
 
 function normalizeRows(data: QueryResponse["data"] | undefined): Record<string, unknown>[] {
   if (Array.isArray(data)) {
     return data.filter((row): row is Record<string, unknown> => Boolean(row) && typeof row === "object");
   }
-
   return [];
 }
 
 function isNumberLike(value: unknown) {
-  if (typeof value === "number") {
-    return Number.isFinite(value);
-  }
-
+  if (typeof value === "number") return Number.isFinite(value);
   if (typeof value === "string") {
     const parsed = Number(value);
     return value.trim().length > 0 && Number.isFinite(parsed);
   }
-
   return false;
 }
 
 function toChartNumber(value: unknown) {
-  if (typeof value === "number") {
-    return value;
-  }
-
+  if (typeof value === "number") return value;
   if (typeof value === "string") {
     const parsed = Number(value);
     return Number.isFinite(parsed) ? parsed : 0;
   }
-
   return 0;
 }
 
 function formatCellValue(value: unknown) {
-  if (value === null || value === undefined) {
-    return "—";
-  }
-
-  if (typeof value === "object") {
-    return JSON.stringify(value);
-  }
-
+  if (value === null || value === undefined) return "—";
+  if (typeof value === "object") return JSON.stringify(value);
   return String(value);
-}
-
-function formatDate(value: string) {
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) {
-    return value;
-  }
-
-  return date.toLocaleString(undefined, {
-    month: "short",
-    day: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-  });
 }
 
 function highlightSql(sql: string) {
   return sql.split(/(\s+|\b)/).map((part, index) => {
     const normalized = part.toLowerCase();
-
     if (SQL_KEYWORDS.has(normalized)) {
-      return (
-        <span key={`${part}-${index}`} className="font-semibold text-sky-300">
-          {part}
-        </span>
-      );
+      return <span key={`${part}-${index}`} className="font-semibold text-sky-300">{part}</span>;
     }
-
     if (/^'.*'$/.test(part)) {
-      return (
-        <span key={`${part}-${index}`} className="text-emerald-300">
-          {part}
-        </span>
-      );
+      return <span key={`${part}-${index}`} className="text-emerald-300">{part}</span>;
     }
-
     if (/^\d+(\.\d+)?$/.test(part)) {
-      return (
-        <span key={`${part}-${index}`} className="text-amber-300">
-          {part}
-        </span>
-      );
+      return <span key={`${part}-${index}`} className="text-amber-300">{part}</span>;
     }
-
     return <span key={`${part}-${index}`}>{part}</span>;
   });
 }
+
+// Keep these type imports satisfied — schema/history still fetched for store integrity
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+type _Unused = TableSchema | HistoryItem;

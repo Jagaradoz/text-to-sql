@@ -60,4 +60,18 @@ export const generateQuery = async (query: string): Promise<QueryResponse> => {
   return response.data;
 };
 
+export interface DatabaseItem {
+  id: number;
+  name: string;
+  type: string;
+  description: string;
+  status: "connected" | "syncing" | "error";
+  last_queried_at: string | null;
+}
+
+export const fetchDatabases = async (): Promise<DatabaseItem[]> => {
+  const response = await api.get('/databases');
+  return response.data;
+};
+
 export default api;

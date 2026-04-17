@@ -1,9 +1,10 @@
 import { create } from 'zustand';
-import { TableSchema, HistoryItem, QueryResponse, fetchSchema, fetchHistory, generateQuery } from '@/lib/api';
+import { TableSchema, HistoryItem, QueryResponse, DatabaseItem, fetchSchema, fetchHistory, generateQuery, fetchDatabases } from '@/lib/api';
 
 interface AppState {
   schema: TableSchema[];
   history: HistoryItem[];
+  databases: DatabaseItem[];
   activeQuery: QueryResponse | null;
   isLoading: boolean;
   error: string | null;
@@ -11,6 +12,7 @@ interface AppState {
   // Actions
   getSchema: () => Promise<void>;
   getHistory: () => Promise<void>;
+  getDatabases: () => Promise<void>;
   submitQuery: (query: string) => Promise<void>;
   resetError: () => void;
 }
@@ -26,6 +28,7 @@ function getErrorMessage(err: unknown, fallback: string) {
 export const useAppStore = create<AppState>((set) => ({
   schema: [],
   history: [],
+  databases: [],
   activeQuery: null,
   isLoading: false,
   error: null,
@@ -52,6 +55,18 @@ export const useAppStore = create<AppState>((set) => ({
     }
   },
 
+  getDatabases: async () => {
+    set({ isLoading: true });
+    try {
+      const data = await fetchDatabases();
+      set({ databases: data, isLoading: false });
+    } catch (err: unknown) {
+      // Gracefully handle missing endpoint — show empty list, not an error page
+      console.warn('Could not fetch databases:', getErrorMessage(err, 'Unknown error'));
+      set({ databases: [], isLoading: false });
+    }
+  },
+
   submitQuery: async (query: string) => {
     set({ isLoading: true, error: null });
     try {
@@ -65,3 +80,4 @@ export const useAppStore = create<AppState>((set) => ({
     }
   },
 }));
+

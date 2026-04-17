@@ -21,6 +21,7 @@
   --input: #27272a;
   --ring: #d4d4d8;
   --radius: 0.5rem;
+  --layout-max-width: 56rem;
 }
 
 @theme inline {
@@ -38,6 +39,28 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-feature-settings: "rlig" 1, "calt" 1;
+}
+
+/* Shared centered layout container */
+.centered-layout {
+  max-width: var(--layout-max-width);
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 1.5rem;
+  padding-right: 1.5rem;
+  width: 100%;
+}
+
+/* Diagonal hatch for empty results panel */
+.results-hatch {
+  background-color: var(--secondary);
+  background-image: repeating-linear-gradient(
+    -45deg,
+    transparent,
+    transparent 8px,
+    rgba(255, 255, 255, 0.03) 8px,
+    rgba(255, 255, 255, 0.03) 16px
+  );
 }
 
 .glass {
