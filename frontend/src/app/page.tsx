@@ -76,54 +76,58 @@ export default function Home() {
   return (
     <div className="space-y-10">
       {/* Hero heading */}
-      <div>
-        <h1 className="text-6xl font-black uppercase leading-none tracking-tight sm:text-7xl">
-          Ask Your
-          <br />
-          Database
+      <div className="text-center pt-10">
+        <h1 className="text-4xl font-black leading-none sm:text-5xl">
+          Ask Your Database
         </h1>
+        <p className="mt-6 text- font-medium text-muted-foreground/70">
+          Generate SQL queries and visualize insights using natural language.
+        </p>
       </div>
 
       {/* Query box */}
       <form onSubmit={onSubmit}>
-        <div className="rounded-md border border-border bg-card p-4">
-          <textarea
-            id="query-input"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
-                e.preventDefault();
-                void handleSubmit();
-              }
-            }}
-            placeholder="e.g. Show total revenue by product category..."
-            rows={4}
-            className="w-full resize-none bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground"
-          />
-          <div className="mt-3 flex items-center justify-between">
-            <p className="text-[11px] text-muted-foreground">
+        <div className="grid grid-cols-4 gap-4 items-start">
+          <div className="col-span-3 flex flex-col gap-2">
+            <div className="rounded-md border border-border bg-card px-4 py-3 transition-focus focus-within:ring-1 focus-within:ring-ring">
+              <input
+                id="query-input"
+                type="text"
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
+                    e.preventDefault();
+                    void handleSubmit();
+                  }
+                }}
+                placeholder="Show total revenue by product category..."
+                className="w-full bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground"
+              />
+            </div>
+            <p className="ml-1 text-[11px] font-medium tracking-wider text-neutral-500">
               Press {typeof window !== "undefined" && navigator.platform.includes("Mac") ? "⌘" : "Ctrl"}+Enter to run
             </p>
-            <button
-              id="execute-btn"
-              type="submit"
-              disabled={isLoading || input.trim().length === 0}
-              className="inline-flex items-center gap-2 rounded bg-foreground px-5 py-2.5 text-xs font-bold uppercase tracking-widest text-background transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              {isLoading ? (
-                <>
-                  <LoaderCircle className="h-3.5 w-3.5 animate-spin" />
-                  Running
-                </>
-              ) : (
-                <>
-                  Execute
-                  <Send className="h-3.5 w-3.5" />
-                </>
-              )}
-            </button>
           </div>
+
+          <button
+            id="execute-btn"
+            type="submit"
+            disabled={isLoading || input.trim().length === 0}
+            className="col-span-1 inline-flex h-[46px] items-center justify-center gap-2 rounded-md bg-foreground px-5 text-sm font-bold uppercase tracking-widest text-background transition-all hover:opacity-90 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {isLoading ? (
+              <>
+                <LoaderCircle className="h-4 w-4 animate-spin" />
+                Running
+              </>
+            ) : (
+              <>
+                Execute
+                <Send className="h-4 w-4" />
+              </>
+            )}
+          </button>
         </div>
 
         {error ? (
@@ -135,13 +139,6 @@ export default function Home() {
 
       {/* Results section */}
       <div className="space-y-4">
-        <div>
-          <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-muted-foreground">
-            Results
-          </h2>
-          <hr className="mt-2 border-border" />
-        </div>
-
         <ResultsPanel
           activeQuery={activeQuery}
           activeTab={activeTab}
@@ -217,11 +214,10 @@ function ResultsPanel({
             key={tab}
             type="button"
             onClick={() => setActiveTab(tab)}
-            className={`px-5 py-3 text-xs font-semibold uppercase tracking-widest transition ${
-              activeTab === tab
-                ? "border-b-2 border-foreground text-foreground"
-                : "text-muted-foreground hover:text-foreground"
-            }`}
+            className={`px-5 py-3 text-xs font-semibold uppercase tracking-widest transition ${activeTab === tab
+              ? "border-b-2 border-foreground text-foreground"
+              : "text-muted-foreground hover:text-foreground"
+              }`}
           >
             {tab === "data" ? "Data View" : tab === "visualization" ? "Visualization" : "Query Details"}
           </button>

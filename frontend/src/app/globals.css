@@ -1,6 +1,7 @@
 @import "tailwindcss";
 
 :root {
+  scrollbar-gutter: stable;
   --background: #09090b;
   --foreground: #fafafa;
   --card: #09090b;
