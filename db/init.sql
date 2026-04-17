@@ -34,6 +34,15 @@ CREATE TABLE order_items (
     unit_price DECIMAL(10,2) NOT NULL
 );
 
+CREATE TABLE query_history (
+    id SERIAL PRIMARY KEY,
+    natural_language_query TEXT NOT NULL,
+    generated_sql TEXT NOT NULL,
+    explanation TEXT,
+    execution_status VARCHAR(50) NOT NULL,
+    created_at TIMESTAMP DEFAULT NOW()
+);
+
 -- 3. Grant privileges to read-only role
 GRANT CONNECT ON DATABASE ecommercedb TO db_reader;
 GRANT USAGE ON SCHEMA public TO db_reader;

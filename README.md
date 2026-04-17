@@ -1,4 +1,4 @@
-# Text-to-SQL Data Assistant
+# Text-to-SQL
 
 A conversational AI data analysis system built on OpenAI function calling and PostgreSQL. Users query complex database metrics through natural chat instead of writing SQL. The AI interprets intent, fetches the schema, maps user requests to valid SQL, executes it securely, and guides the workflow from raw data to visualization.
 

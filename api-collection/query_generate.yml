@@ -1,0 +1,23 @@
+info:
+  name: query generate
+  type: http
+  seq: 4
+
+http:
+  method: POST
+  url: http://localhost:8000/api/v1/query/generate
+  auth: inherit
+
+body:
+  type: json
+  
+body:json:
+  {
+    "query": "Show me all users from Canada"
+  }
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
