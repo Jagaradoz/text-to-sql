@@ -63,7 +63,7 @@ def run_agent_query(user_input: str) -> dict:
     if not settings.OPENAI_API_KEY:
         raise ValueError("OPENAI_API_KEY is not configured in .env.")
         
-    llm = ChatOpenAI(model="gpt-4o", temperature=0)
+    llm = ChatOpenAI(model="gpt-4o", temperature=0, openai_api_key=settings.OPENAI_API_KEY)
     tools = [get_database_schema_tool, execute_sql_query_tool, generate_visualization_tool]
     agent = create_tool_calling_agent(llm, tools, prompt)
     agent_executor = AgentExecutor(agent=agent, tools=tools, verbose=True)

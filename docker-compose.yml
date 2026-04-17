@@ -1,7 +1,7 @@
 services:
-  postgres:
+  db:
     image: postgres:15-alpine
-    container_name: text_to_sql_db
+    container_name: database
     environment:
       POSTGRES_USER: admin
       POSTGRES_PASSWORD: adminpassword
