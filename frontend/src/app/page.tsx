@@ -244,6 +244,10 @@ export default function Home() {
               setCurrentPage={setCurrentPage}
               tableColumns={tableColumns}
               totalPages={totalPages}
+              onSuggestionClick={(query) => {
+                setInput(query);
+                void handleSubmit(query);
+              }}
             />
           </section>
         </main>
@@ -392,6 +396,7 @@ function ResultsWorkspace({
   activeTab,
   currentPage,
   isLoading,
+  onSuggestionClick,
   paginatedRows,
   rows,
   setActiveTab,
@@ -409,6 +414,7 @@ function ResultsWorkspace({
   setCurrentPage: (page: number) => void;
   tableColumns: string[];
   totalPages: number;
+  onSuggestionClick: (query: string) => void;
 }) {
   return (
     <div className="relative flex h-full min-h-[420px] flex-col overflow-hidden rounded-[28px] border border-border/60 bg-card/90 shadow-[0_30px_120px_-60px_rgba(255,255,255,0.25)]">
@@ -439,7 +445,7 @@ function ResultsWorkspace({
         {isLoading ? <LoadingOverlay /> : null}
 
         {!activeQuery ? (
-          <EmptyWorkspace />
+          <EmptyWorkspace onSuggestionClick={onSuggestionClick} />
         ) : (
           <>
             {activeTab === "data" ? (
@@ -470,38 +476,96 @@ function ResultsWorkspace({
   );
 }
 
-function EmptyWorkspace() {
+function EmptyWorkspace({ onSuggestionClick }: { onSuggestionClick: (query: string) => void }) {
   return (
-    <div className="flex h-full flex-col items-center justify-center px-6 text-center">
-      <div className="rounded-3xl border border-border/60 bg-background/50 px-8 py-10">
-        <Sparkles className="mx-auto h-10 w-10 text-primary/70" />
-        <h3 className="mt-5 text-xl font-semibold">Workspace ready</h3>
-        <p className="mt-2 max-w-md text-sm text-muted-foreground">
-          Run a natural-language query to populate the data table, generate a chart, and inspect
-          the SQL that powers the result.
+    <div className="scroll-thin flex h-full flex-col items-center justify-center overflow-y-auto px-6 py-12 text-center">
+      <div className="w-full max-w-2xl rounded-3xl border border-border/60 bg-background/50 p-8 shadow-sm">
+        <Sparkles className="mx-auto mb-6 h-12 w-12 text-primary/70" />
+        <h3 className="text-2xl font-semibold tracking-tight">Your data, ready to explore</h3>
+        <p className="mx-auto mt-3 max-w-lg text-[15px] leading-relaxed text-muted-foreground">
+          Ask a question in plain English, and the AI will generate the SQL, fetch the data,
+          and automatically create a chart. Try one of the suggestions below to get started.
         </p>
+
+        <div className="mt-10 grid grid-cols-1 gap-3 text-left sm:grid-cols-2">
+          {[
+            {
+              title: "Revenue by category",
+              query: "Show total revenue grouped by product category, ordered highest to lowest.",
+            },
+            {
+              title: "Recent high-value orders",
+              query: "Find the 10 most recent orders where the total amount was above $1000.",
+            },
+            {
+              title: "Top customers",
+              query: "Who are our top 5 customers by total lifetime spend?",
+            },
+            {
+              title: "Monthly growth",
+              query: "Show me the total number of orders placed each month this year.",
+            },
+          ].map((card, i) => (
+            <button
+              key={i}
+              type="button"
+              onClick={() => onSuggestionClick(card.query)}
+              className="group flex flex-col justify-center rounded-2xl border border-border/60 bg-card/60 p-5 transition-all focus:outline-none hover:scale-[1.02] hover:border-primary/50 hover:bg-card hover:shadow-lg"
+            >
+              <span className="text-[15px] font-semibold">{card.title}</span>
+              <span className="mt-1 line-clamp-2 text-xs font-medium text-muted-foreground">
+                &ldquo;{card.query}&rdquo;
+              </span>
+            </button>
+          ))}
+        </div>
       </div>
     </div>
   );
 }
 
+const LOADING_STEPS = [
+  "Reading schema contexts...",
+  "Synthesizing SQL query...",
+  "Executing sequence safely...",
+  "Structuring visualizations...",
+];
+
 function LoadingOverlay() {
+  const [step, setStep] = useState(0);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setStep((prev) => Math.min(LOADING_STEPS.length - 1, prev + 1));
+    }, 1200);
+    return () => clearInterval(timer);
+  }, []);
+
   return (
-    <div className="absolute inset-0 z-10 flex items-center justify-center bg-background/65 backdrop-blur-sm">
-      <div className="w-full max-w-xl rounded-[28px] border border-border/60 bg-card/90 p-6 shadow-2xl">
-        <div className="flex items-center gap-3">
-          <LoaderCircle className="h-5 w-5 animate-spin text-primary" />
+    <div className="absolute inset-0 z-10 flex items-center justify-center bg-background/65 backdrop-blur-sm transition-all duration-300">
+      <div className="w-full max-w-md rounded-[28px] border border-border/60 bg-card/90 p-8 shadow-[0_20px_40px_-20px_rgba(0,0,0,0.3)]">
+        <div className="flex flex-col items-center gap-6 text-center">
+          <div className="relative flex h-14 w-14 items-center justify-center bg-primary/10 rounded-2xl">
+            <div className="absolute inset-0 border-2 border-primary/20 rounded-2xl" />
+            <div className="absolute inset-0 border-t-2 border-primary rounded-2xl animate-[spin_3s_linear_infinite]" />
+            <LoaderCircle className="h-6 w-6 text-primary animate-pulse" />
+          </div>
           <div>
-            <p className="text-sm font-semibold">Generating query and fetching data</p>
-            <p className="text-xs text-muted-foreground">
-              The assistant is building SQL, running it safely, and preparing the workspace.
+            <h3 className="text-base font-semibold tracking-tight">Generating Insight</h3>
+            <p className="mt-2 h-5 text-sm text-muted-foreground transition-all duration-300">
+              {LOADING_STEPS[step]}
             </p>
           </div>
         </div>
-        <div className="mt-6 space-y-3">
-          <div className="h-4 animate-pulse rounded-full bg-secondary/80" />
-          <div className="h-4 w-5/6 animate-pulse rounded-full bg-secondary/70" />
-          <div className="h-36 animate-pulse rounded-[24px] bg-secondary/60" />
+        <div className="flex gap-2 mt-8">
+          {LOADING_STEPS.map((_, i) => (
+            <div
+              key={i}
+              className={`h-1.5 flex-1 rounded-full transition-all duration-500 ${
+                i <= step ? "bg-primary" : "bg-secondary"
+              }`}
+            />
+          ))}
         </div>
       </div>
     </div>

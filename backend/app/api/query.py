@@ -1,3 +1,6 @@
+import json
+from datetime import datetime
+from pathlib import Path
 from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
@@ -5,6 +8,22 @@ from typing import Union, List, Dict, Any
 from app.domain.db import get_db
 from app.domain.models import QueryHistory
 from app.services.ai_service import run_agent_query
+
+def log_failed_query(query: str, error_message: str):
+    log_dir = Path("logs")
+    log_dir.mkdir(exist_ok=True)
+    
+    log_entry = {
+        "timestamp": datetime.utcnow().isoformat() + "Z",
+        "query": query,
+        "error": error_message
+    }
+    
+    try:
+        with open(log_dir / "failed_queries.jsonl", "a", encoding="utf-8") as f:
+            f.write(json.dumps(log_entry) + "\n")
+    except Exception as io_err:
+        print(f"Failed to write telemetry: {io_err}")
 
 router = APIRouter()
 
@@ -59,4 +78,7 @@ def generate_query(req: QueryRequest, db: Session = Depends(get_db)):
             db.commit()
         except:
             pass
+            
+        log_failed_query(req.query, str(e))
+        
         raise HTTPException(status_code=500, detail=f"AI Agent failed: {str(e)}")
