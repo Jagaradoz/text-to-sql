@@ -52,18 +52,6 @@ body {
   width: 100%;
 }
 
-/* Diagonal hatch for empty results panel */
-.results-hatch {
-  background-color: var(--secondary);
-  background-image: repeating-linear-gradient(
-    -45deg,
-    transparent,
-    transparent 8px,
-    rgba(255, 255, 255, 0.03) 8px,
-    rgba(255, 255, 255, 0.03) 16px
-  );
-}
-
 .glass {
   background: rgba(255, 255, 255, 0.03);
   backdrop-filter: blur(10px);
@@ -78,4 +66,3 @@ body {
   background: var(--border);
   border-radius: 10px;
 }
-

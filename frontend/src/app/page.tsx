@@ -139,6 +139,12 @@ export default function Home() {
 
       {/* Results section */}
       <div className="space-y-4">
+        <div className="mt-15">
+          <h2 className="text-2xl font-bold">
+            Results
+          </h2>
+          {/* <div className="h-px mt-3 w-full bg-border/100" /> */}
+        </div>
         <ResultsPanel
           activeQuery={activeQuery}
           activeTab={activeTab}
@@ -184,10 +190,10 @@ function ResultsPanel({
   /* Empty / awaiting state */
   if (!activeQuery && !isLoading) {
     return (
-      <div className="results-hatch flex min-h-[260px] flex-col items-center justify-center gap-3 rounded-md border border-border">
-        <Database className="h-10 w-10 text-muted-foreground/50" />
-        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-          Awaiting Query
+      <div className="flex min-h-[260px] flex-col items-center justify-center gap-3 rounded-md">
+        <Database className="h-13 w-13 text-muted-foreground/50" />
+        <p className="text-sm font-light">
+          Your desired results will appear here
         </p>
       </div>
     );
@@ -196,17 +202,17 @@ function ResultsPanel({
   /* Loading overlay */
   if (isLoading) {
     return (
-      <div className="flex min-h-[260px] flex-col items-center justify-center gap-3 rounded-md border border-border bg-card">
+      <div className="flex min-h-[260px] flex-col items-center justify-center gap-3">
         <LoaderCircle className="h-8 w-8 animate-spin text-muted-foreground" />
         <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-          Generating SQL…
+          Finding answers…
         </p>
       </div>
     );
   }
 
   return (
-    <div className="rounded-md border border-border bg-card">
+    <div>
       {/* Tabs */}
       <div className="flex gap-0 border-b border-border">
         {(["data", "visualization", "details"] as TabKey[]).map((tab) => (
