@@ -15,6 +15,14 @@ interface AppState {
   resetError: () => void;
 }
 
+function getErrorMessage(err: unknown, fallback: string) {
+  if (err instanceof Error && err.message) {
+    return err.message;
+  }
+
+  return fallback;
+}
+
 export const useAppStore = create<AppState>((set) => ({
   schema: [],
   history: [],
@@ -29,8 +37,8 @@ export const useAppStore = create<AppState>((set) => ({
     try {
       const data = await fetchSchema();
       set({ schema: data.schema, isLoading: false });
-    } catch (err: any) {
-      set({ error: err.message || 'Failed to fetch schema', isLoading: false });
+    } catch (err: unknown) {
+      set({ error: getErrorMessage(err, 'Failed to fetch schema'), isLoading: false });
     }
   },
 
@@ -39,8 +47,8 @@ export const useAppStore = create<AppState>((set) => ({
     try {
       const data = await fetchHistory();
       set({ history: data, isLoading: false });
-    } catch (err: any) {
-      set({ error: err.message || 'Failed to fetch history', isLoading: false });
+    } catch (err: unknown) {
+      set({ error: getErrorMessage(err, 'Failed to fetch history'), isLoading: false });
     }
   },
 
@@ -48,12 +56,12 @@ export const useAppStore = create<AppState>((set) => ({
     set({ isLoading: true, error: null });
     try {
       const data = await generateQuery(query);
-      set({ activeQuery: data, isLoading: false });
+      set({ activeQuery: data });
       // Refresh history after a new query
       const history = await fetchHistory();
-      set({ history });
-    } catch (err: any) {
-      set({ error: err.message || 'Failed to generate query', isLoading: false });
+      set({ history, isLoading: false });
+    } catch (err: unknown) {
+      set({ error: getErrorMessage(err, 'Failed to generate query'), isLoading: false });
     }
   },
 }));

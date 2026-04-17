@@ -16,22 +16,24 @@ export interface TableColumn {
 export interface TableSchema {
   table_name: string;
   columns: TableColumn[];
-  foreign_keys: any[];
+  foreign_keys: Array<Record<string, unknown>>;
 }
 
 export interface SchemaResponse {
   schema: TableSchema[];
 }
 
+export interface ChartConfig {
+  type: string;
+  x_axis: string;
+  y_axis: string;
+}
+
 export interface QueryResponse {
   sql: string;
   explanation: string;
-  data: any[];
-  chart_config: {
-    type: string;
-    x_axis: string;
-    y_axis: string;
-  };
+  data: Array<Record<string, unknown>> | string;
+  chart_config: ChartConfig;
 }
 
 export interface HistoryItem {
