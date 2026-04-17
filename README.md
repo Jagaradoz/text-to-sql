@@ -66,10 +66,10 @@ Works via chat panel interaction:
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| `POST` | `/api/chat` | Main conversational endpoint. Returns `{ response, sql, data, tool_data }` |
-| `GET`  | `/api/health` | Health check |
-| `GET`  | `/api/schema` | Retrieves all tables and schemas for the UI / AI context |
-| `POST` | `/api/reset` | Resets conversation session history |
+| `POST` | `/api/v1/query/generate` | Accepts natural language; returns SQL, Explanation, Data, and Chart Config |
+| `GET`  | `/api/v1/health` | System health check |
+| `GET`  | `/api/v1/database/schema` | Retrieves table schemas to populate the UI |
+| `GET`  | `/api/v1/history` | Fetches historical queries |
 
 ## Getting Started
 
