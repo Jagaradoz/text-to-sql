@@ -8,6 +8,7 @@ from sqlalchemy import text
 from src.database.connection import get_db_schema, engine
 from src.services.sql_validator import validate_sql_safety
 from src.config import settings
+from src.constants import AGENT_QUERY_LIMIT, MAX_SQL_CONTENT_CHARS
 
 def format_schema_for_ai(schema_info):
     """
@@ -36,12 +37,16 @@ def get_database_schema_tool() -> str:
 @tool("execute_sql_query")
 def execute_sql_query_tool(sql: str) -> str:
     """Executes a SQL SELECT query safely against the database and returns the JSON results."""
-    # Safety middleware check (throws HTTPException 400 if malicious)
+    # Safety check (raises ValueError if malicious)
     validate_sql_safety(sql)
+    
+    # Wrap in subquery with LIMIT to prevent unbounded results
+    escaped_sql = sql.replace(":", "\\:")
+    safe_sql = f"SELECT * FROM ({escaped_sql}) AS agent_sub LIMIT {AGENT_QUERY_LIMIT}"
     
     try:
         with engine.connect() as conn:
-            result = conn.execute(text(sql))
+            result = conn.execute(text(safe_sql))
             rows = [dict(row._mapping) for row in result]
             return json.dumps(rows, default=str)
     except Exception as e:
@@ -113,6 +118,9 @@ def analyze_sql_schema(sql_content: str) -> List[Dict[str, str]]:
     """
     if not settings.OPENAI_API_KEY:
         raise ValueError("OPENAI_API_KEY is not configured.")
+
+    if len(sql_content) > MAX_SQL_CONTENT_CHARS:
+        raise ValueError(f"SQL script too large ({len(sql_content)} chars). Maximum is {MAX_SQL_CONTENT_CHARS} chars.")
 
     llm = ChatOpenAI(model="gpt-4o", temperature=0, openai_api_key=settings.OPENAI_API_KEY)
     

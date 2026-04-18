@@ -1,12 +1,14 @@
 from sqlalchemy import create_engine, inspect, text
-from sqlalchemy.orm import sessionmaker, declarative_base
+from sqlalchemy.orm import sessionmaker, DeclarativeBase
 from sqlalchemy import func as sa_func
 from src.config import settings
+from src.constants import MAX_RECORDS_LIMIT
 
 engine = create_engine(settings.DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-Base = declarative_base()
+class Base(DeclarativeBase):
+    pass
 
 def get_db():
     db = SessionLocal()
@@ -92,9 +94,7 @@ def get_db_table_detail(table_name: str) -> dict:
     }
 
 
-MAX_RECORDS_LIMIT = 500
-
-def get_table_records(table_name: str, page: int, limit: int) -> dict:
+def inspect_table(table_name: str, page: int, limit: int) -> dict:
     """
     Fetches a paginated slice of raw records from any known table.
     
@@ -114,14 +114,18 @@ def get_table_records(table_name: str, page: int, limit: int) -> dict:
     limit = min(limit, MAX_RECORDS_LIMIT)
     offset = (page - 1) * limit
 
+    # Quote the identifier to prevent injection even with allowlist validation
+    from sqlalchemy import quoted_name
+    quoted_table = str(quoted_name(table_name, quote=True))
+
     with engine.connect() as conn:
-        # COUNT query — table name in FROM clause is allowlist-safe (validated above)
-        count_result = conn.execute(text(f"SELECT COUNT(*) FROM {table_name}"))
+        # COUNT query — table name is quoted and allowlist-validated
+        count_result = conn.execute(text(f"SELECT COUNT(*) FROM {quoted_table}"))
         total_records = count_result.scalar()
 
-        # Data query — LIMIT and OFFSET use named parameters, never f-string
+        # Data query — LIMIT and OFFSET use named parameters, table name is quoted
         data_result = conn.execute(
-            text(f"SELECT * FROM {table_name} LIMIT :limit OFFSET :offset"),
+            text(f"SELECT * FROM {quoted_table} LIMIT :limit OFFSET :offset"),
             {"limit": limit, "offset": offset}
         )
         rows = [dict(row._mapping) for row in data_result]
@@ -143,10 +147,15 @@ def get_table_records(table_name: str, page: int, limit: int) -> dict:
 def execute_raw_sql(sql_content: str):
     """
     Executes multiple SQL statements (DDL/DML) within a single transaction.
+    Splits the script into individual statements using sqlparse so each
+    can be executed separately (psycopg2 doesn't support multi-statement text()).
     """
+    import sqlparse
+
+    statements = [s for s in sqlparse.split(sql_content) if s.strip()]
+
     with engine.connect() as conn:
         with conn.begin():
-            # Split script into individual statements safely for execution
-            # sqlalchemy's text() doesn't handle multiple statements well in all drivers
-            # but for this showcase we'll execute the whole block.
-            conn.execute(text(sql_content))
+            for stmt in statements:
+                # Escape colons so SQLAlchemy does not treat them as bind parameters
+                conn.execute(text(stmt.replace(":", "\\:")))

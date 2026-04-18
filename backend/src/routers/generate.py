@@ -1,16 +1,16 @@
 import json
-from datetime import datetime
+import logging
+from datetime import datetime, timezone
 from pathlib import Path
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
-from sqlalchemy.orm import Session
 from sqlalchemy import text
 from typing import Union, List, Dict, Any, Optional
-from src.database.connection import get_db
-from src.database.models import QueryHistory
 from src.services.ai_service import run_agent_query
+from src.services.sql_validator import validate_sql_safety
+from src.constants import GENERATE_LIMIT
 
-GENERATE_LIMIT = 50  # Fixed cap for generated query results
+logger = logging.getLogger(__name__)
 
 
 def log_failed_generate(prompt: str, error_message: str):
@@ -18,7 +18,7 @@ def log_failed_generate(prompt: str, error_message: str):
     log_dir.mkdir(exist_ok=True)
 
     log_entry = {
-        "timestamp": datetime.utcnow().isoformat() + "Z",
+        "timestamp": datetime.now(timezone.utc).isoformat(),
         "prompt": prompt,
         "error": error_message
     }
@@ -52,7 +52,7 @@ class GenerateResponse(BaseModel):
 
 
 @router.post("", response_model=GenerateResponse)
-def generate(req: GenerateRequest, db: Session = Depends(get_db)):
+def generate(req: GenerateRequest):
     try:
         # Run LangChain agent — the AI decides the SQL
         result_dict = run_agent_query(req.prompt)
@@ -61,21 +61,27 @@ def generate(req: GenerateRequest, db: Session = Depends(get_db)):
         explanation = result_dict.get("explanation", "")
         chart_config = result_dict.get("chart_config", {})
 
-        # Security: Wrap the AI-generated SQL in a subquery with a fixed LIMIT.
-        # This prevents crashes when the AI already includes a LIMIT,
-        # and also guards against excessively large result sets.
-        safe_sql = f"SELECT * FROM ({raw_sql}) AS sub LIMIT :limit"
-
-        from src.database.connection import engine
-        from src.services.sql_validator import validate_sql_safety
-
         # First, validate the raw AI SQL before wrapping/executing
         validate_sql_safety(raw_sql)
+
+        # Extra guard: reject if raw SQL contains semicolons (prevents multi-statement injection)
+        if ";" in raw_sql.rstrip(";"):
+            raise ValueError("Semicolons are not permitted in generated SQL.")
+
+        from src.database.connection import engine
+
+        # Escape colons in the raw SQL so SQLAlchemy does not treat them as bind parameters
+        escaped_sql = raw_sql.replace(":", "\\:")
+
+        # Security: Wrap the AI-generated SQL in a subquery with a fixed LIMIT.
+        # raw_sql is validated (single SELECT only, no semicolons) before use.
+        # SQL fragments cannot be parameterized, so f-string is used after validation.
+        safe_sql = f"SELECT * FROM ({escaped_sql}) AS sub LIMIT :limit"
 
         with engine.connect() as conn:
             # Get total count using a subquery
             count_result = conn.execute(
-                text(f"SELECT COUNT(*) FROM ({raw_sql}) AS count_sub")
+                text(f"SELECT COUNT(*) FROM ({escaped_sql}) AS count_sub")
             )
             total_records = count_result.scalar()
 
@@ -90,16 +96,6 @@ def generate(req: GenerateRequest, db: Session = Depends(get_db)):
         if total_records > GENERATE_LIMIT:
             warning = f"Results are capped at {GENERATE_LIMIT} records. The full query returned {total_records} rows."
 
-        # Persist to history table safely
-        history_entry = QueryHistory(
-            natural_language_query=req.prompt,
-            generated_sql=raw_sql,
-            explanation=explanation,
-            execution_status="SUCCESS"
-        )
-        db.add(history_entry)
-        db.commit()
-
         return GenerateResponse(
             sql=raw_sql,
             explanation=explanation,
@@ -112,20 +108,10 @@ def generate(req: GenerateRequest, db: Session = Depends(get_db)):
             data=rows,
         )
     except ValueError as ve:
+        # Validation errors from sql_validator (safety check failures)
         raise HTTPException(status_code=400, detail=str(ve))
     except Exception as e:
-        # Log failure to DB
-        try:
-            history_entry = QueryHistory(
-                natural_language_query=req.prompt,
-                generated_sql="FAILED",
-                explanation=str(e),
-                execution_status="FAILED"
-            )
-            db.add(history_entry)
-            db.commit()
-        except Exception:
-            pass
+        logger.error(f"Generate failed for prompt '{req.prompt}': {e}")
 
         log_failed_generate(req.prompt, str(e))
         raise HTTPException(status_code=500, detail=f"AI Agent failed: {str(e)}")

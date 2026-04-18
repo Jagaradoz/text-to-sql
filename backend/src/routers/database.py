@@ -2,10 +2,11 @@ from fastapi import APIRouter, HTTPException, Query, Depends, UploadFile, File
 from pydantic import BaseModel
 from typing import List, Dict, Any, Optional
 from sqlalchemy.orm import Session
-from src.database.connection import get_db, get_table_records, execute_raw_sql
+from src.database.connection import get_db, inspect_table, execute_raw_sql
 from src.database.models import TableMetadata
 from src.services.sql_validator import validate_ddl_safety
 from src.services.ai_service import analyze_sql_schema
+from src.constants import MAX_UPLOAD_SIZE
 
 router = APIRouter()
 
@@ -54,7 +55,7 @@ def schema_overview(db: Session = Depends(get_db)):
 
 
 @router.get("/{table_name}", response_model=TableRecordsResponse)
-def table_records(
+def inspect_table(
     table_name: str,
     page: int = Query(default=1, ge=1, description="Page number (1-indexed)"),
     limit: int = Query(default=50, ge=1, le=500, description="Records per page (max 500)"),
@@ -67,14 +68,14 @@ def table_records(
     allowlist. limit/offset are parameterized to prevent SQL injection.
     """
     try:
-        result = get_table_records(table_name, page, limit)
+        result = inspect_table(table_name, page, limit)
         return TableRecordsResponse(**result)
     except Exception as e:
         raise HTTPException(status_code=503, detail=f"Database unreachable: {str(e)}")
 
 
 @router.post("/upload")
-async def upload_sql_schema(
+def upload_sql_schema(
     file: UploadFile = File(...),
     db: Session = Depends(get_db)
 ):
@@ -85,19 +86,28 @@ async def upload_sql_schema(
     if not file.filename.endswith(".sql"):
         raise HTTPException(status_code=400, detail="Only .sql files are supported.")
 
-    content = await file.read()
+    content = file.file.read()
+
+    if len(content) > MAX_UPLOAD_SIZE:
+        raise HTTPException(status_code=400, detail=f"File too large. Maximum size is {MAX_UPLOAD_SIZE // (1024*1024)} MB.")
+
     # Handle files potentially missing BOM or unusual encodings
     try:
         sql_text = content.decode("utf-8")
     except UnicodeDecodeError:
-         sql_text = content.decode("latin-1")
+        sql_text = content.decode("latin-1")
 
     # 1. Security check
-    validate_ddl_safety(sql_text)
+    try:
+        validate_ddl_safety(sql_text)
+    except ValueError as ve:
+        raise HTTPException(status_code=400, detail=str(ve))
 
     # 2. AI Analysis for metadata
-    # We do this BEFORE execution in case we want to show it, or just for documentation
-    metadata_list = analyze_sql_schema(sql_text)
+    try:
+        metadata_list = analyze_sql_schema(sql_text)
+    except ValueError as ve:
+        raise HTTPException(status_code=400, detail=str(ve))
 
     # 3. Execute the SQL
     try:
