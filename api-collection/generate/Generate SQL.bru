@@ -1,0 +1,21 @@
+meta {
+  name: Generate SQL
+  type: http
+  seq: 1
+}
+
+post {
+  url: http://localhost:8000/api/generate
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "prompt": "Show me all users from USA"
+  }
+}
+
+docs {
+  Invokes the LangChain agent to generate and execute SQL based on the provided prompt.
+}

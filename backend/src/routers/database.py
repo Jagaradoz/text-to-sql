@@ -2,12 +2,14 @@ from fastapi import APIRouter, HTTPException, Query, Depends, UploadFile, File
 from pydantic import BaseModel
 from typing import List, Dict, Any, Optional
 from sqlalchemy.orm import Session
+import pandas as pd
+import io
+import re
+
 from src.database.connection import get_db
 from src.services.database.records import inspect_table
-from src.services.database.execution import execute_raw_sql
 from src.database.models import TableMetadata
-from src.services.database.sql_validator import validate_ddl_safety
-from src.services.ai.analyzer import analyze_sql_schema
+from src.services.ai.analyzer import analyze_dataframe_schema
 from src.constants import MAX_UPLOAD_SIZE
 
 router = APIRouter()
@@ -57,89 +59,102 @@ def schema_overview(db: Session = Depends(get_db)):
 
 
 @router.get("/{table_name}", response_model=TableRecordsResponse)
-def inspect_table(
+def inspect_table_endpoint(
     table_name: str,
-    page: int = Query(default=1, ge=1, description="Page number (1-indexed)"),
-    limit: int = Query(default=50, ge=1, le=500, description="Records per page (max 500)"),
 ):
     """
-    Returns a paginated slice of raw records from the specified table.
+    Returns a slice of raw records from the specified table (capped at MAX_RECORDS_LIMIT).
     Used by the database Inspect feature on the frontend.
 
     Security: table_name is validated against the live database inspector
-    allowlist. limit/offset are parameterized to prevent SQL injection.
+    allowlist.
     """
     try:
-        result = inspect_table(table_name, page, limit)
+        result = inspect_table(table_name)
         return TableRecordsResponse(**result)
     except Exception as e:
         raise HTTPException(status_code=503, detail=f"Database unreachable: {str(e)}")
 
 
 @router.post("/upload")
-def upload_sql_schema(
+def upload_data_schema(
     file: UploadFile = File(...),
     db: Session = Depends(get_db)
 ):
     """
-    Receives a .sql file, validates it for safety, executes it to create tables,
-    and uses AI to generate and store descriptions for the new tables.
+    Receives a .csv or .xlsx file, processes it into a new database table safely,
+    and uses AI to generate and store descriptions for the new table.
     """
-    if not file.filename.endswith(".sql"):
-        raise HTTPException(status_code=400, detail="Only .sql files are supported.")
+    if not (file.filename.endswith(".csv") or file.filename.endswith(".xlsx") or file.filename.endswith(".xls")):
+        raise HTTPException(status_code=400, detail="Only .csv, .xls, and .xlsx files are supported.")
 
     content = file.file.read()
 
     if len(content) > MAX_UPLOAD_SIZE:
         raise HTTPException(status_code=400, detail=f"File too large. Maximum size is {MAX_UPLOAD_SIZE // (1024*1024)} MB.")
 
-    # Handle files potentially missing BOM or unusual encodings
-    try:
-        sql_text = content.decode("utf-8")
-    except UnicodeDecodeError:
-        sql_text = content.decode("latin-1")
+    file_stream = io.BytesIO(content)
 
-    # 1. Security check
+    # 1. Parse File to DataFrame
     try:
-        validate_ddl_safety(sql_text)
-    except ValueError as ve:
-        raise HTTPException(status_code=400, detail=str(ve))
-
-    # 2. AI Analysis for metadata
-    try:
-        metadata_list = analyze_sql_schema(sql_text)
-    except ValueError as ve:
-        raise HTTPException(status_code=400, detail=str(ve))
-
-    # 3. Execute the SQL
-    try:
-        execute_raw_sql(sql_text)
+        if file.filename.endswith(".csv"):
+            df = pd.read_csv(file_stream)
+        else:
+            df = pd.read_excel(file_stream)
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"SQL Execution Error: {str(e)}")
+        raise HTTPException(status_code=400, detail=f"Failed to parse file: {str(e)}")
+
+    if df.empty:
+        raise HTTPException(status_code=400, detail="The uploaded file is empty.")
+
+    # Generate a clean table name from the filename
+    base_name = file.filename.rsplit(".", 1)[0]
+    table_name = re.sub(r'[^a-zA-Z0-9_]', '_', base_name).lower()
+    
+    # Prefix numeric starts
+    if table_name and table_name[0].isdigit():
+        table_name = "t_" + table_name
+
+    # 2. Insert into Database
+    try:
+        engine = db.get_bind()
+        # pandas.to_sql with if_exists='replace' creates the table if it does not exist
+        df.to_sql(name=table_name, con=engine, if_exists="replace", index=False)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Database Insertion Error: {str(e)}")
+
+    # 3. AI Analysis for metadata
+    try:
+        df_preview = df.head(3).to_dict(orient="records")
+        dtypes_dict = {str(k): str(v) for k, v in df.dtypes.items()}
+        metadata_list = analyze_dataframe_schema(table_name, df_preview, dtypes_dict)
+    except Exception as e:
+        # We don't fail the upload just because AI analysis failed, but we log/return it.
+        metadata_list = [{"table_name": table_name, "description": f"Imported data from {file.filename}"}]
+        print(f"AI analysis failed: {e}")
 
     # 4. Sync metadata to table_metadata
     created_tables = []
     for item in metadata_list:
-        table_name = item.get("table_name")
+        meta_table_name = item.get("table_name")
         description = item.get("description")
         
-        if not table_name:
+        if not meta_table_name:
             continue
             
-        # Update or Insert
-        db_item = db.query(TableMetadata).filter(TableMetadata.table_name == table_name).first()
+        db_item = db.query(TableMetadata).filter(TableMetadata.table_name == meta_table_name).first()
         if db_item:
             db_item.description = description
         else:
-            db_item = TableMetadata(table_name=table_name, description=description)
+            db_item = TableMetadata(table_name=meta_table_name, description=description)
             db.add(db_item)
         
-        created_tables.append(table_name)
+        created_tables.append(meta_table_name)
     
     db.commit()
 
     return {
         "status": "success",
-        "message": f"Successfully processed SQL script. Tables documented: {', '.join(created_tables)}",
+        "message": f"Successfully processed data file. Tables documented: {', '.join(created_tables)}",
         "metadata": metadata_list
     }

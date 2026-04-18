@@ -1,0 +1,19 @@
+meta {
+  name: Schema Overview
+  type: http
+  seq: 1
+}
+
+get {
+  url: http://localhost:8000/api/database/schema
+  body: none
+  auth: inherit
+}
+
+query {
+  ~table_name: 
+}
+
+docs {
+  Returns a list of all tables and their human-readable descriptions.
+}

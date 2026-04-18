@@ -1,0 +1,1 @@
+{"timestamp": "2026-04-18T14:12:15.378136+00:00", "prompt": "Show me all users from Canada", "error": "\"Input to ChatPromptTemplate is missing variables {''}.  Expected: ['', 'input'] Received: ['input', 'intermediate_steps', 'agent_scratchpad']\\nNote: if you intended {} to be part of the string and not a variable, please escape it with double curly braces like: '{{}}'.\""}

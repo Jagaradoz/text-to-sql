@@ -1,31 +1,33 @@
 import json
-from typing import List, Dict
+from typing import List, Dict, Any
 from langchain_openai import ChatOpenAI
 from src.config import settings
-from src.constants import MAX_SQL_CONTENT_CHARS
 
-def analyze_sql_schema(sql_content: str) -> List[Dict[str, str]]:
+def analyze_dataframe_schema(table_name: str, df_preview: List[Dict[str, Any]], dtypes_dict: Dict[str, str]) -> List[Dict[str, str]]:
     """
-    Uses LLM to analyze the provided SQL schema content and return 
-    a list of table names and their summaries/descriptions.
+    Uses LLM to analyze the provided DataFrame schema information and return 
+    a description of the table based on its columns and sample data.
     """
     if not settings.OPENAI_API_KEY:
         raise ValueError("OPENAI_API_KEY is not configured.")
 
-    if len(sql_content) > MAX_SQL_CONTENT_CHARS:
-        raise ValueError(f"SQL script too large ({len(sql_content)} chars). Maximum is {MAX_SQL_CONTENT_CHARS} chars.")
-
     llm = ChatOpenAI(model="gpt-4o", temperature=0, openai_api_key=settings.OPENAI_API_KEY)
     
+    schema_info = {
+        "table_name": table_name,
+        "columns_and_types": dtypes_dict,
+        "sample_data": df_preview
+    }
+    
     analysis_prompt = f"""
-    Analyze the following SQL DDL script. 
-    Identify every table that will be created and provide a 1-sentence description of its purpose based on its columns and structure.
+    Analyze the following data table information.
+    Provide a 1-sentence description of its purpose based on its name, columns, and sample data.
     
     Return ONLY a JSON list of objects with the keys 'table_name' and 'description'.
     Example: [{{"table_name": "users", "description": "Stores user profiles and login credentials"}}]
     
-    SQL Content:
-    {sql_content}
+    Table Information:
+    {json.dumps(schema_info, indent=2, default=str)}
     """
     
     response = llm.invoke(analysis_prompt)

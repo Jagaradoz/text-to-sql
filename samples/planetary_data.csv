@@ -1,0 +1,9 @@
+planet_name,distance_from_sun_au,mass_kg,orbital_period_days,moons,has_rings
+Mercury,0.39,3.30e23,88,0,False
+Venus,0.72,4.87e24,225,0,False
+Earth,1.00,5.97e24,365,1,False
+Mars,1.52,6.42e23,687,2,False
+Jupiter,5.20,1.90e27,4333,79,True
+Saturn,9.54,5.68e26,10759,82,True
+Uranus,19.22,8.68e25,30687,27,True
+Neptune,30.06,1.02e26,60190,14,True

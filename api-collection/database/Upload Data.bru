@@ -1,0 +1,19 @@
+meta {
+  name: Upload Data
+  type: http
+  seq: 3
+}
+
+post {
+  url: http://localhost:8000/api/database/upload
+  body: multipartForm
+  auth: inherit
+}
+
+body:multipart-form {
+  file: @file()
+}
+
+docs {
+  Receives a .csv or .xlsx file, processes it into a new database table safely, and uses AI to generate and store descriptions for the new table.
+}

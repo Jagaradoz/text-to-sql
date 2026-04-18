@@ -1,0 +1,19 @@
+meta {
+  name: Inspect Table
+  type: http
+  seq: 2
+}
+
+get {
+  url: http://localhost:8000/api/database/:table_name
+  body: none
+  auth: inherit
+}
+
+params:path {
+  table_name: users
+}
+
+docs {
+  Returns a slice of raw records from the specified table (capped at MAX_RECORDS_LIMIT).
+}
