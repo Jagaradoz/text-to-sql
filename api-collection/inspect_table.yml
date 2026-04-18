@@ -8,10 +8,6 @@ http:
   url: http://localhost:8000/api/database/users
   auth: inherit
 
-query:
-  page: 1
-  limit: 50
-
 settings:
   encodeUrl: true
   timeout: 0

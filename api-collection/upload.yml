@@ -10,9 +10,10 @@ http:
 
 body:
   type: multipartForm
-
-body:multipartForm:
-  file: @file(example_schema.sql)
+  multipartForm:
+    - name: file
+      value: ./example_schema.sql
+      type: file
 
 settings:
   encodeUrl: true

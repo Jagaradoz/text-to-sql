@@ -1,4 +1,5 @@
 import json
+from typing import List, Dict
 from langchain_core.tools import tool
 from langchain_openai import ChatOpenAI
 from langchain.agents import create_tool_calling_agent, AgentExecutor

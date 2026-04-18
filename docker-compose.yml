@@ -5,11 +5,11 @@ services:
     environment:
       POSTGRES_USER: admin
       POSTGRES_PASSWORD: adminpassword
-      POSTGRES_DB: ecommercedb
+      POSTGRES_DB: text-to-sql-db
     ports:
       - "5432:5432"
     volumes:
-      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./db/:/docker-entrypoint-initdb.d/
       - pgdata:/var/lib/postgresql/data
 
 volumes:
