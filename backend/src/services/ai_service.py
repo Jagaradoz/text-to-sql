@@ -5,7 +5,7 @@ from langchain.agents import create_tool_calling_agent, AgentExecutor
 from langchain_core.prompts import ChatPromptTemplate
 from sqlalchemy import text
 from src.database.connection import get_db_schema, engine
-from src.security import validate_sql_safety
+from src.services.sql_validator import validate_sql_safety
 from src.config import settings
 
 def format_schema_for_ai(schema_info):

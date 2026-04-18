@@ -51,7 +51,6 @@ Effective Text-to-SQL relies heavily on context injection. The core system promp
 | `GET` | `/api/health` | System health check |
 | `GET` | `/api/database/schema` | Retrieves table schemas to populate the UI |
 | `POST` | `/api/query/generate` | Accepts natural language; returns SQL, Explanation, Data, and Chart Config |
-| `GET` | `/api/history` | Fetches historical queries |
 
 ### 9. User Interface Design Requirements
 - **Dashboard:** Features a prominent search bar optimized for natural language, accompanied by a collapsible schema viewer to inform the user of available data.

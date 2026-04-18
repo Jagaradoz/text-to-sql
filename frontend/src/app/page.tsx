@@ -16,7 +16,7 @@ import {
   YAxis,
 } from "recharts";
 import { Database, LoaderCircle, Send } from "lucide-react";
-import { ChartConfig, HistoryItem, QueryResponse, TableSchema } from "@/lib/api";
+import { ChartConfig, QueryResponse } from "@/lib/api";
 import { useAppStore } from "@/store/useAppStore";
 
 const PAGE_SIZE = 8;
@@ -34,7 +34,6 @@ export default function Home() {
   const error = useAppStore((state) => state.error);
   const activeQuery = useAppStore((state) => state.activeQuery);
   const getSchema = useAppStore((state) => state.getSchema);
-  const getHistory = useAppStore((state) => state.getHistory);
   const submitQuery = useAppStore((state) => state.submitQuery);
   const resetError = useAppStore((state) => state.resetError);
 
@@ -44,8 +43,7 @@ export default function Home() {
 
   useEffect(() => {
     void getSchema();
-    void getHistory();
-  }, [getHistory, getSchema]);
+  }, [getSchema]);
 
   const rows = useMemo(() => normalizeRows(activeQuery?.data), [activeQuery]);
   const tableColumns = useMemo(
@@ -518,7 +516,3 @@ function highlightSql(sql: string) {
     return <span key={`${part}-${index}`}>{part}</span>;
   });
 }
-
-// Keep these type imports satisfied — schema/history still fetched for store integrity
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-type _Unused = TableSchema | HistoryItem;

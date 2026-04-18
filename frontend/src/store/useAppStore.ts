@@ -1,9 +1,8 @@
 import { create } from 'zustand';
-import { TableSchema, HistoryItem, QueryResponse, DatabaseItem, fetchSchema, fetchHistory, generateQuery, fetchDatabases } from '@/lib/api';
+import { TableSchema, QueryResponse, DatabaseItem, fetchSchema, generateQuery, fetchDatabases } from '@/lib/api';
 
 interface AppState {
   schema: TableSchema[];
-  history: HistoryItem[];
   databases: DatabaseItem[];
   activeQuery: QueryResponse | null;
   isLoading: boolean;
@@ -11,7 +10,6 @@ interface AppState {
   
   // Actions
   getSchema: () => Promise<void>;
-  getHistory: () => Promise<void>;
   getDatabases: () => Promise<void>;
   submitQuery: (query: string) => Promise<void>;
   resetError: () => void;
@@ -27,7 +25,6 @@ function getErrorMessage(err: unknown, fallback: string) {
 
 export const useAppStore = create<AppState>((set) => ({
   schema: [],
-  history: [],
   databases: [],
   activeQuery: null,
   isLoading: false,
@@ -42,16 +39,6 @@ export const useAppStore = create<AppState>((set) => ({
       set({ schema: data.schema, isLoading: false });
     } catch (err: unknown) {
       set({ error: getErrorMessage(err, 'Failed to fetch schema'), isLoading: false });
-    }
-  },
-
-  getHistory: async () => {
-    set({ isLoading: true });
-    try {
-      const data = await fetchHistory();
-      set({ history: data, isLoading: false });
-    } catch (err: unknown) {
-      set({ error: getErrorMessage(err, 'Failed to fetch history'), isLoading: false });
     }
   },
 
@@ -71,10 +58,7 @@ export const useAppStore = create<AppState>((set) => ({
     set({ isLoading: true, error: null });
     try {
       const data = await generateQuery(query);
-      set({ activeQuery: data });
-      // Refresh history after a new query
-      const history = await fetchHistory();
-      set({ history, isLoading: false });
+      set({ activeQuery: data, isLoading: false });
     } catch (err: unknown) {
       set({ error: getErrorMessage(err, 'Failed to generate query'), isLoading: false });
     }

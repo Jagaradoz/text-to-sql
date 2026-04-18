@@ -36,22 +36,8 @@ export interface QueryResponse {
   chart_config: ChartConfig;
 }
 
-export interface HistoryItem {
-  id: number;
-  natural_language_query: string;
-  generated_sql: string;
-  explanation: string;
-  execution_status: string;
-  created_at: string;
-}
-
 export const fetchSchema = async (): Promise<SchemaResponse> => {
   const response = await api.get('/database/schema');
-  return response.data;
-};
-
-export const fetchHistory = async (): Promise<HistoryItem[]> => {
-  const response = await api.get('/history');
   return response.data;
 };
 

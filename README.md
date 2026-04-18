@@ -69,7 +69,6 @@ Works via chat panel interaction:
 | `POST` | `/api/query/generate` | Accepts natural language; returns SQL, Explanation, Data, and Chart Config |
 | `GET`  | `/api/health` | System health check |
 | `GET`  | `/api/database/schema` | Retrieves table schemas to populate the UI |
-| `GET`  | `/api/history` | Fetches historical queries |
 
 ## Getting Started
 
