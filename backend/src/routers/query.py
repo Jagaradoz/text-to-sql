@@ -5,9 +5,9 @@ from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 from typing import Union, List, Dict, Any
-from app.domain.db import get_db
-from app.domain.models import QueryHistory
-from app.services.ai_service import run_agent_query
+from src.database.connection import get_db
+from src.database.models import QueryHistory
+from src.services.ai_service import run_agent_query
 
 def log_failed_query(query: str, error_message: str):
     log_dir = Path("logs")

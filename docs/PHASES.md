@@ -50,7 +50,7 @@ text-to-sql-app/
 - Integrate the OpenAI API using LangChain abstractions.
 - Design the System Prompt dynamically injecting the schema contexts.
 - Develop the AST Validation / Regex middleware function to intercept incoming SQL strings and verify they are strictly `SELECT` statements.
-- Build the primary `POST /api/v1/query/generate` endpoint that ties prompt generation to safe PostgreSQL execution.
+- Build the primary `POST /api/query/generate` endpoint that ties prompt generation to safe PostgreSQL execution.
 - Optional addition: Implement a self-correcting loop wherein if an execution error occurs, the trace is passed back to the LLM to correct the query automatically once.
 
 ### Phase 4: Next.js Frontend Scaffolding

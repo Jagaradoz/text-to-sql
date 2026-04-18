@@ -24,7 +24,7 @@ sequenceDiagram
     participant DB as PostgreSQL DB
 
     User->>Frontend: Enters Natural Language Query
-    Frontend->>Backend: POST /api/v1/query/generate
+    Frontend->>Backend: POST /api/query/generate
     
     rect rgb(230, 240, 250)
         Note over Backend,AI: Phase 1: AI Translation

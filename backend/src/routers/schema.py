@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException
-from app.domain.schema_service import get_db_schema
+from src.database.connection import get_db_schema
 
 router = APIRouter()
 

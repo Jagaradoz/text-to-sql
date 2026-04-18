@@ -1,8 +1,8 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from typing import List, Dict, Any
-from app.domain.db import get_db
-from app.domain.models import QueryHistory
+from src.database.connection import get_db
+from src.database.models import QueryHistory
 
 router = APIRouter()
 

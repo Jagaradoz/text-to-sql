@@ -4,10 +4,27 @@ from langchain_openai import ChatOpenAI
 from langchain.agents import create_tool_calling_agent, AgentExecutor
 from langchain_core.prompts import ChatPromptTemplate
 from sqlalchemy import text
-from app.domain.schema_service import get_db_schema, format_schema_for_ai
-from app.domain.db import engine
-from app.core.security import validate_sql_safety
-from app.core.config import settings
+from src.database.connection import get_db_schema, engine
+from src.security import validate_sql_safety
+from src.config import settings
+
+def format_schema_for_ai(schema_info):
+    """
+    Formats the schema info into a text description for inclusion in prompt.
+    """
+    description = ""
+    for table in schema_info:
+        description += f"Table: {table['table_name']}\n"
+        description += "Columns:\n"
+        for col in table['columns']:
+            description += f" - {col['name']} ({col['type']})\n"
+        
+        if table['foreign_keys']:
+            description += "Relationships:\n"
+            for fk in table['foreign_keys']:
+                description += f" - {table['table_name']}({', '.join(fk['constrained_columns'])}) references {fk['referred_table']}({', '.join(fk['referred_columns'])})\n"
+        description += "\n"
+    return description
 
 @tool("get_database_schema")
 def get_database_schema_tool() -> str:

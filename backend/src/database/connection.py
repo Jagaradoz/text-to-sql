@@ -1,5 +1,18 @@
-from sqlalchemy import inspect
-from app.domain.db import engine
+from sqlalchemy import create_engine, inspect
+from sqlalchemy.orm import sessionmaker, declarative_base
+from src.config import settings
+
+engine = create_engine(settings.DATABASE_URL)
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+Base = declarative_base()
+
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
 
 def get_db_schema():
     """
@@ -34,21 +47,3 @@ def get_db_schema():
         })
         
     return schema_info
-
-def format_schema_for_ai(schema_info):
-    """
-    Formats the schema info into a text description for inclusion in prompt.
-    """
-    description = ""
-    for table in schema_info:
-        description += f"Table: {table['table_name']}\n"
-        description += "Columns:\n"
-        for col in table['columns']:
-            description += f" - {col['name']} ({col['type']})\n"
-        
-        if table['foreign_keys']:
-            description += "Relationships:\n"
-            for fk in table['foreign_keys']:
-                description += f" - {table['table_name']}({', '.join(fk['constrained_columns'])}) references {fk['referred_table']}({', '.join(fk['referred_columns'])})\n"
-        description += "\n"
-    return description

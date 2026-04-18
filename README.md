@@ -66,10 +66,10 @@ Works via chat panel interaction:
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| `POST` | `/api/v1/query/generate` | Accepts natural language; returns SQL, Explanation, Data, and Chart Config |
-| `GET`  | `/api/v1/health` | System health check |
-| `GET`  | `/api/v1/database/schema` | Retrieves table schemas to populate the UI |
-| `GET`  | `/api/v1/history` | Fetches historical queries |
+| `POST` | `/api/query/generate` | Accepts natural language; returns SQL, Explanation, Data, and Chart Config |
+| `GET`  | `/api/health` | System health check |
+| `GET`  | `/api/database/schema` | Retrieves table schemas to populate the UI |
+| `GET`  | `/api/history` | Fetches historical queries |
 
 ## Getting Started
 
