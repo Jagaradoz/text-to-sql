@@ -53,3 +53,12 @@ class QueryHistory(Base):
     explanation = Column(Text)
     execution_status = Column(String, nullable=False)
     created_at = Column(DateTime, server_default=func.now())
+
+
+class TableMetadata(Base):
+    """Stores human-readable descriptions for each database table."""
+    __tablename__ = "table_metadata"
+    id = Column(Integer, primary_key=True, index=True)
+    table_name = Column(String, unique=True, nullable=False, index=True)
+    description = Column(Text, nullable=False)
+    created_at = Column(DateTime, server_default=func.now())

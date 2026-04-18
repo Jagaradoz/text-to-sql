@@ -1,0 +1,21 @@
+info:
+  name: upload sql schema
+  type: http
+  seq: 5
+
+http:
+  method: POST
+  url: http://localhost:8000/api/database/upload
+  auth: inherit
+
+body:
+  type: multipartForm
+
+body:multipartForm:
+  file: @file(example_schema.sql)
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

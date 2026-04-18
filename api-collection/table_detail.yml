@@ -1,5 +1,5 @@
 info:
-  name: table detail
+  name: inspect table
   type: http
   seq: 3
 
@@ -8,10 +8,9 @@ http:
   url: http://localhost:8000/api/database/users
   auth: inherit
 
-params:
-  - type: path
-    name: table_name
-    value: users
+query:
+  page: 1
+  limit: 50
 
 settings:
   encodeUrl: true

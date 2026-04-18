@@ -102,7 +102,7 @@ Works via chat panel interaction:
 
 4. **Start the backend:**
    ```bash
-   uvicorn main:app --reload --port 8000
+   uvicorn src.main:app --reload --port 8000
    ```
 
 5. **Set up and start the frontend (new terminal):**
