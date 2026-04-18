@@ -76,7 +76,7 @@ export function DatabaseCard({ db }: { db: DatabaseItem }) {
           href={`/?db=${String(db.id)}`}
           className="inline-flex items-center gap-1.5 rounded bg-foreground px-4 py-2 text-xs font-semibold uppercase tracking-widest text-background transition hover:opacity-90"
         >
-          Query Now →
+          Ask Now →
         </Link>
       </div>
     </div>

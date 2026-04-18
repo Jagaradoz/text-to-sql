@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from src.config import settings
-from src.routers import health, schema, query
+from src.routers import health, schema, generate
 
 app = FastAPI(
     title="Text-to-SQL Data Assistant",
@@ -21,7 +21,7 @@ api_prefix = "/api"
 
 app.include_router(health.router, prefix=api_prefix, tags=["system"])
 app.include_router(schema.router, prefix=api_prefix + "/database", tags=["database"])
-app.include_router(query.router, prefix=api_prefix + "/query", tags=["query"])
+app.include_router(generate.router, prefix=api_prefix + "/generate", tags=["generate"])
 
 if __name__ == "__main__":
     import uvicorn

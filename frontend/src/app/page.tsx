@@ -16,7 +16,7 @@ import {
   YAxis,
 } from "recharts";
 import { Database, LoaderCircle, Send } from "lucide-react";
-import { ChartConfig, QueryResponse } from "@/lib/api";
+import { ChartConfig, GenerateResponse } from "@/lib/api";
 import { useAppStore } from "@/store/useAppStore";
 
 const PAGE_SIZE = 8;
@@ -32,9 +32,9 @@ type TabKey = "data" | "visualization" | "details";
 export default function Home() {
   const isLoading = useAppStore((state) => state.isLoading);
   const error = useAppStore((state) => state.error);
-  const activeQuery = useAppStore((state) => state.activeQuery);
+  const activeResult = useAppStore((state) => state.activeResult);
   const getSchema = useAppStore((state) => state.getSchema);
-  const submitQuery = useAppStore((state) => state.submitQuery);
+  const submitGenerate = useAppStore((state) => state.submitGenerate);
   const resetError = useAppStore((state) => state.resetError);
 
   const [input, setInput] = useState("");
@@ -45,7 +45,7 @@ export default function Home() {
     void getSchema();
   }, [getSchema]);
 
-  const rows = useMemo(() => normalizeRows(activeQuery?.data), [activeQuery]);
+  const rows = useMemo(() => normalizeRows(activeResult?.data), [activeResult]);
   const tableColumns = useMemo(
     () => (rows.length > 0 ? Object.keys(rows[0]) : []),
     [rows],
@@ -56,14 +56,14 @@ export default function Home() {
     return rows.slice(start, start + PAGE_SIZE);
   }, [currentPage, rows]);
 
-  const handleSubmit = async (queryText?: string) => {
-    const nextQuery = (queryText ?? input).trim();
-    if (!nextQuery || isLoading) return;
+  const handleSubmit = async (promptText?: string) => {
+    const nextPrompt = (promptText ?? input).trim();
+    if (!nextPrompt || isLoading) return;
     resetError();
-    setInput(nextQuery);
+    setInput(nextPrompt);
     setCurrentPage(1);
     setActiveTab("data");
-    await submitQuery(nextQuery);
+    await submitGenerate(nextPrompt);
   };
 
   const onSubmit = async (e: FormEvent<HTMLFormElement>) => {
@@ -83,13 +83,13 @@ export default function Home() {
         </p>
       </div>
 
-      {/* Query box */}
+      {/* Prompt box */}
       <form onSubmit={onSubmit}>
         <div className="grid grid-cols-4 gap-4 items-start">
           <div className="col-span-3 flex flex-col gap-2">
             <div className="rounded-md border border-border bg-card px-4 py-3 transition-focus focus-within:ring-1 focus-within:ring-ring">
               <input
-                id="query-input"
+                id="prompt-input"
                 type="text"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
@@ -144,7 +144,7 @@ export default function Home() {
           {/* <div className="h-px mt-3 w-full bg-border/100" /> */}
         </div>
         <ResultsPanel
-          activeQuery={activeQuery}
+          activeResult={activeResult}
           activeTab={activeTab}
           currentPage={currentPage}
           isLoading={isLoading}
@@ -163,7 +163,7 @@ export default function Home() {
 /* ─── Results Panel ─────────────────────────────────────────────────────── */
 
 function ResultsPanel({
-  activeQuery,
+  activeResult,
   activeTab,
   currentPage,
   isLoading,
@@ -174,7 +174,7 @@ function ResultsPanel({
   tableColumns,
   totalPages,
 }: {
-  activeQuery: QueryResponse | null;
+  activeResult: GenerateResponse | null;
   activeTab: TabKey;
   currentPage: number;
   isLoading: boolean;
@@ -186,7 +186,7 @@ function ResultsPanel({
   totalPages: number;
 }) {
   /* Empty / awaiting state */
-  if (!activeQuery && !isLoading) {
+  if (!activeResult && !isLoading) {
     return (
       <div className="flex min-h-[260px] flex-col items-center justify-center gap-3 rounded-md">
         <Database className="h-13 w-13 text-muted-foreground/50" />
@@ -223,7 +223,7 @@ function ResultsPanel({
               : "text-muted-foreground hover:text-foreground"
               }`}
           >
-            {tab === "data" ? "Data View" : tab === "visualization" ? "Visualization" : "Query Details"}
+            {tab === "data" ? "Data View" : tab === "visualization" ? "Visualization" : "Details"}
           </button>
         ))}
       </div>
@@ -240,11 +240,11 @@ function ResultsPanel({
             totalPages={totalPages}
           />
         )}
-        {activeTab === "visualization" && activeQuery && (
-          <VisualizationView chartConfig={activeQuery.chart_config} rows={rows} />
+        {activeTab === "visualization" && activeResult && (
+          <VisualizationView chartConfig={activeResult.chart_config} rows={rows} />
         )}
-        {activeTab === "details" && activeQuery && (
-          <QueryDetailsView explanation={activeQuery.explanation} sql={activeQuery.sql} />
+        {activeTab === "details" && activeResult && (
+          <DetailsView explanation={activeResult.explanation} sql={activeResult.sql} />
         )}
       </div>
     </div>
@@ -271,7 +271,7 @@ function DataView({
   if (rows.length === 0) {
     return (
       <div className="flex h-[260px] items-center justify-center text-sm text-muted-foreground">
-        The query completed, but no rows were returned.
+        The generation completed, but no rows were returned.
       </div>
     );
   }
@@ -370,9 +370,9 @@ function VisualizationView({ chartConfig, rows }: { chartConfig: ChartConfig; ro
   );
 }
 
-/* ─── Query Details View ────────────────────────────────────────────────── */
+/* ─── Details View ────────────────────────────────────────────────── */
 
-function QueryDetailsView({ explanation, sql }: { explanation: string; sql: string }) {
+function DetailsView({ explanation, sql }: { explanation: string; sql: string }) {
   return (
     <div className="grid grid-cols-1 gap-0 lg:grid-cols-2">
       <div className="scroll-thin overflow-auto border-b border-border p-5 lg:border-b-0 lg:border-r">
@@ -470,7 +470,7 @@ function resolveChartType(type: string, rows: Record<string, unknown>[], xAxis: 
 
 /* ─── Utility functions (unchanged) ─────────────────────────────────────── */
 
-function normalizeRows(data: QueryResponse["data"] | undefined): Record<string, unknown>[] {
+function normalizeRows(data: GenerateResponse["data"] | undefined): Record<string, unknown>[] {
   if (Array.isArray(data)) {
     return data.filter((row): row is Record<string, unknown> => Boolean(row) && typeof row === "object");
   }

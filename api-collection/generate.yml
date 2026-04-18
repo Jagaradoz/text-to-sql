@@ -1,11 +1,11 @@
 info:
-  name: query generate
+  name: generate
   type: http
   seq: 4
 
 http:
   method: POST
-  url: http://localhost:8000/api/query/generate
+  url: http://localhost:8000/api/generate
   auth: inherit
 
 body:
@@ -13,7 +13,7 @@ body:
   
 body:json:
   {
-    "query": "Show me all users from Canada"
+    "prompt": "Show me all users from Canada"
   }
 
 settings:

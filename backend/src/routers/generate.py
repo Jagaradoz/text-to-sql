@@ -9,38 +9,38 @@ from src.database.connection import get_db
 from src.database.models import QueryHistory
 from src.services.ai_service import run_agent_query
 
-def log_failed_query(query: str, error_message: str):
+def log_failed_generate(prompt: str, error_message: str):
     log_dir = Path("logs")
     log_dir.mkdir(exist_ok=True)
     
     log_entry = {
         "timestamp": datetime.utcnow().isoformat() + "Z",
-        "query": query,
+        "prompt": prompt,
         "error": error_message
     }
     
     try:
-        with open(log_dir / "failed_queries.jsonl", "a", encoding="utf-8") as f:
+        with open(log_dir / "failed_generates.jsonl", "a", encoding="utf-8") as f:
             f.write(json.dumps(log_entry) + "\n")
     except Exception as io_err:
         print(f"Failed to write telemetry: {io_err}")
 
 router = APIRouter()
 
-class QueryRequest(BaseModel):
-    query: str
+class GenerateRequest(BaseModel):
+    prompt: str
 
-class QueryResponse(BaseModel):
+class GenerateResponse(BaseModel):
     sql: str
     explanation: str
     data: Union[List[Dict[str, Any]], str]
     chart_config: dict
 
-@router.post("/generate", response_model=QueryResponse)
-def generate_query(req: QueryRequest, db: Session = Depends(get_db)):
+@router.post("", response_model=GenerateResponse)
+def generate(req: GenerateRequest, db: Session = Depends(get_db)):
     try:
         # Run LangChain agent
-        result_dict = run_agent_query(req.query)
+        result_dict = run_agent_query(req.prompt)
         
         sql = result_dict.get("sql", "")
         explanation = result_dict.get("explanation", "")
@@ -49,7 +49,7 @@ def generate_query(req: QueryRequest, db: Session = Depends(get_db)):
         
         # Persist to history table safely
         history_entry = QueryHistory(
-            natural_language_query=req.query,
+            natural_language_query=req.prompt,
             generated_sql=sql,
             explanation=explanation,
             execution_status="SUCCESS"
@@ -57,7 +57,7 @@ def generate_query(req: QueryRequest, db: Session = Depends(get_db)):
         db.add(history_entry)
         db.commit()
         
-        return QueryResponse(
+        return GenerateResponse(
             sql=sql,
             explanation=explanation,
             data=data,
@@ -68,7 +68,7 @@ def generate_query(req: QueryRequest, db: Session = Depends(get_db)):
     except Exception as e:
         # Attempt to log failure
         history_entry = QueryHistory(
-            natural_language_query=req.query,
+            natural_language_query=req.prompt,
             generated_sql="FAILED",
             explanation=str(e),
             execution_status="FAILED"
@@ -79,6 +79,6 @@ def generate_query(req: QueryRequest, db: Session = Depends(get_db)):
         except:
             pass
             
-        log_failed_query(req.query, str(e))
+        log_failed_generate(req.prompt, str(e))
         
         raise HTTPException(status_code=500, detail=f"AI Agent failed: {str(e)}")

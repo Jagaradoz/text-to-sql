@@ -1,17 +1,17 @@
 import { create } from 'zustand';
-import { TableSchema, QueryResponse, DatabaseItem, fetchSchema, generateQuery, fetchDatabases } from '@/lib/api';
+import { TableSchema, GenerateResponse, DatabaseItem, fetchSchema, generate, fetchDatabases } from '@/lib/api';
 
 interface AppState {
   schema: TableSchema[];
   databases: DatabaseItem[];
-  activeQuery: QueryResponse | null;
+  activeResult: GenerateResponse | null;
   isLoading: boolean;
   error: string | null;
   
   // Actions
   getSchema: () => Promise<void>;
   getDatabases: () => Promise<void>;
-  submitQuery: (query: string) => Promise<void>;
+  submitGenerate: (prompt: string) => Promise<void>;
   resetError: () => void;
 }
 
@@ -26,7 +26,7 @@ function getErrorMessage(err: unknown, fallback: string) {
 export const useAppStore = create<AppState>((set) => ({
   schema: [],
   databases: [],
-  activeQuery: null,
+  activeResult: null,
   isLoading: false,
   error: null,
 
@@ -54,13 +54,13 @@ export const useAppStore = create<AppState>((set) => ({
     }
   },
 
-  submitQuery: async (query: string) => {
+  submitGenerate: async (prompt: string) => {
     set({ isLoading: true, error: null });
     try {
-      const data = await generateQuery(query);
-      set({ activeQuery: data, isLoading: false });
+      const data = await generate(prompt);
+      set({ activeResult: data, isLoading: false });
     } catch (err: unknown) {
-      set({ error: getErrorMessage(err, 'Failed to generate query'), isLoading: false });
+      set({ error: getErrorMessage(err, 'Failed to generate'), isLoading: false });
     }
   },
 }));

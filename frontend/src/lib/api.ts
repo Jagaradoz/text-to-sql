@@ -29,7 +29,7 @@ export interface ChartConfig {
   y_axis: string;
 }
 
-export interface QueryResponse {
+export interface GenerateResponse {
   sql: string;
   explanation: string;
   data: Array<Record<string, unknown>> | string;
@@ -41,8 +41,8 @@ export const fetchSchema = async (): Promise<SchemaResponse> => {
   return response.data;
 };
 
-export const generateQuery = async (query: string): Promise<QueryResponse> => {
-  const response = await api.post('/query/generate', { query });
+export const generate = async (prompt: string): Promise<GenerateResponse> => {
+  const response = await api.post('/generate', { prompt });
   return response.data;
 };
 
