@@ -2,10 +2,11 @@ from fastapi import APIRouter, HTTPException, Query, Depends, UploadFile, File
 from pydantic import BaseModel
 from typing import List, Dict, Any, Optional
 from sqlalchemy.orm import Session
-from src.database.connection import get_db, inspect_table, execute_raw_sql
+from src.database.connection import get_db
+from src.services.database import inspect_table, execute_raw_sql
 from src.database.models import TableMetadata
 from src.services.sql_validator import validate_ddl_safety
-from src.services.ai_service import analyze_sql_schema
+from src.services.ai import analyze_sql_schema
 from src.constants import MAX_UPLOAD_SIZE
 
 router = APIRouter()

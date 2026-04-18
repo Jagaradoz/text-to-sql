@@ -6,7 +6,7 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from sqlalchemy import text
 from typing import Union, List, Dict, Any, Optional
-from src.services.ai_service import run_agent_query
+from src.services.ai import run_agent_query
 from src.services.sql_validator import validate_sql_safety
 from src.constants import GENERATE_LIMIT
 
