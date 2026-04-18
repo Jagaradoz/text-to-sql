@@ -3,7 +3,7 @@ from langchain_core.tools import tool
 from sqlalchemy import text
 from src.database.connection import engine
 from src.services.database.introspection import get_db_schema
-from src.services.sql_validator import validate_sql_safety
+from src.services.database.sql_validator import validate_sql_safety
 from src.constants import AGENT_QUERY_LIMIT
 
 def format_schema_for_ai(schema_info):
