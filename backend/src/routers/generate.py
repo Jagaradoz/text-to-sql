@@ -77,7 +77,7 @@ def generate(req: GenerateRequest, x_ai_api_key: Optional[str] = Header(None)):
 
         # Extra guard: reject if raw SQL contains semicolons (prevents multi-statement injection)
         if ";" in raw_sql.rstrip(";"):
-            raise ValueError("Semicolons are not permitted in generated SQL.")
+            raise ValueError("The AI generated an invalid query. Please try rephrasing your prompt.")
 
         from src.database.connection import engine
 
@@ -124,10 +124,10 @@ def generate(req: GenerateRequest, x_ai_api_key: Optional[str] = Header(None)):
         )
     except ValueError as ve:
         # Validation errors from sql_validator (safety check failures)
-        raise HTTPException(status_code=400, detail=str(ve))
+        raise HTTPException(status_code=400, detail="The requested operation is not allowed. Only data retrieval (SELECT) is permitted.")
     except Exception as e:
         safe_prompt = req.prompt.replace("\n", "\\n").replace("\r", "\\r")
         logger.error(f"Generate failed for prompt '{safe_prompt}': {e}")
 
         log_failed_generate(req.prompt, str(e))
-        raise HTTPException(status_code=500, detail=f"AI Agent failed: {str(e)}")
+        raise HTTPException(status_code=500, detail="The AI assistant encountered an error while processing your request. Please try again.")

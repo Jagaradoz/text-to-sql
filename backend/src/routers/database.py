@@ -83,19 +83,22 @@ def inspect_table_endpoint(
 @router.post("/upload")
 def upload_data_schema(
     file: UploadFile = File(...),
+    x_ai_api_key: Optional[str] = Header(None),
     db: Session = Depends(get_db)
 ):
     """
     Receives a .csv or .xlsx file, processes it into a new database table safely,
     and uses AI to generate and store descriptions for the new table.
     """
+    if not x_ai_api_key:
+        raise HTTPException(status_code=400, detail="An OpenAI API key is required to upload data. Please provide one in your settings.")
     if not (file.filename.endswith(".csv") or file.filename.endswith(".xlsx") or file.filename.endswith(".xls")):
-        raise HTTPException(status_code=400, detail="Only .csv, .xls, and .xlsx files are supported.")
+        raise HTTPException(status_code=400, detail="Invalid file type. Please upload a .csv, .xls, or .xlsx file.")
 
     content = file.file.read()
 
     if len(content) > MAX_UPLOAD_SIZE:
-        raise HTTPException(status_code=400, detail=f"File too large. Maximum size is {MAX_UPLOAD_SIZE // (1024*1024)} MB.")
+        raise HTTPException(status_code=400, detail=f"The uploaded file exceeds the maximum allowed size of {MAX_UPLOAD_SIZE // (1024*1024)} MB.")
 
     file_stream = io.BytesIO(content)
 
@@ -106,10 +109,10 @@ def upload_data_schema(
         else:
             df = pd.read_excel(file_stream)
     except Exception as e:
-        raise HTTPException(status_code=400, detail=f"Failed to parse file: {str(e)}")
+        raise HTTPException(status_code=400, detail="Unable to read the file. Please ensure it is a valid, uncorrupted spreadsheet.")
 
     if df.empty:
-        raise HTTPException(status_code=400, detail="The uploaded file is empty.")
+        raise HTTPException(status_code=400, detail="The uploaded file contains no data.")
 
     # Generate a clean table name from the filename
     base_name = file.filename.rsplit(".", 1)[0]
@@ -126,7 +129,7 @@ def upload_data_schema(
     except Exception as e:
         import traceback
         traceback.print_exc()
-        raise HTTPException(status_code=500, detail=f"Database Insertion Error: {str(e)}")
+        raise HTTPException(status_code=500, detail="An error occurred while saving your data. Please check the file formatting and try again.")
 
     # 3. AI Analysis for metadata
     try:
@@ -159,11 +162,6 @@ def upload_data_schema(
     db.commit()
 
     return {
-        "status": "success",
-        "message": f"Successfully processed data file. Tables documented: {', '.join(created_tables)}",
-        "metadata": metadata_list
-    }
-turn {
         "status": "success",
         "message": f"Successfully processed data file. Tables documented: {', '.join(created_tables)}",
         "metadata": metadata_list

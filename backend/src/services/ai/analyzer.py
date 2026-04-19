@@ -8,7 +8,7 @@ def analyze_dataframe_schema(table_name: str, df_preview: List[Dict[str, Any]], 
     a description of the table based on its columns and sample data.
     """
     if not api_key:
-        raise ValueError("OpenAI API key is missing. Please provide it in the X-AI-API-Key header.")
+        raise ValueError("An OpenAI API key is required to upload data. Please provide one in your settings.")
 
     llm = ChatOpenAI(model="gpt-4o", temperature=0, openai_api_key=api_key)
     

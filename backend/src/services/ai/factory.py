@@ -27,7 +27,7 @@ class LLMFactory:
         active_key = api_key
         
         if not active_key:
-            raise ValueError("OpenAI API key is missing. Please provide it in the X-AI-API-Key header.")
+            raise ValueError("An OpenAI API key is required. Please provide one in your settings.")
 
         logger.info(f"Initializing OpenAI with model: {model}")
         return ChatOpenAI(
