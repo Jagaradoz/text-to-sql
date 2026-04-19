@@ -3,7 +3,8 @@ from typing import Optional
 
 class Settings(BaseSettings):
     DATABASE_URL: str
-    OPENAI_API_KEY: Optional[str] = None
+    OLLAMA_BASE_URL: str = "http://localhost:11434"
+    OLLAMA_MODEL: str = "llama3.1"
     ENVIRONMENT: str = "development"
     PORT: int = 8000
 

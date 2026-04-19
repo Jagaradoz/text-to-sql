@@ -2,7 +2,7 @@ import json
 import logging
 from datetime import datetime, timezone
 from pathlib import Path
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Header
 from pydantic import BaseModel
 from sqlalchemy import text
 from typing import Union, List, Dict, Any, Optional
@@ -35,6 +35,8 @@ router = APIRouter()
 
 class GenerateRequest(BaseModel):
     prompt: str
+    provider: str = "openai"
+    model_name: Optional[str] = None
     page: int = 1
     limit: int = DEFAULT_PAGE_SIZE
 
@@ -56,10 +58,15 @@ class GenerateResponse(BaseModel):
 
 
 @router.post("", response_model=GenerateResponse)
-def generate(req: GenerateRequest):
+def generate(req: GenerateRequest, x_ai_api_key: Optional[str] = Header(None)):
     try:
-        # Run LangChain agent — the AI decides the SQL
-        result_dict = run_agent_query(req.prompt)
+        # Run LangChain agent — now provider-aware
+        result_dict = run_agent_query(
+            user_input=req.prompt,
+            provider=req.provider,
+            api_key=x_ai_api_key,
+            model_name=req.model_name
+        )
 
         raw_sql = result_dict.get("sql", "").strip()
         explanation = result_dict.get("explanation", "")
@@ -119,7 +126,8 @@ def generate(req: GenerateRequest):
         # Validation errors from sql_validator (safety check failures)
         raise HTTPException(status_code=400, detail=str(ve))
     except Exception as e:
-        logger.error(f"Generate failed for prompt '{req.prompt}': {e}")
+        safe_prompt = req.prompt.replace("\n", "\\n").replace("\r", "\\r")
+        logger.error(f"Generate failed for prompt '{safe_prompt}': {e}")
 
         log_failed_generate(req.prompt, str(e))
         raise HTTPException(status_code=500, detail=f"AI Agent failed: {str(e)}")

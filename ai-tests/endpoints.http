@@ -35,7 +35,10 @@ id,name,value
 POST {{baseUrl}}/generate
 Content-Type: application/json
 Accept: application/json
+X-AI-API-Key: YOUR_API_KEY_HERE
 
 {
-    "prompt": "Show me the top 5 most expensive products in the ecommerce table."
+    "prompt": "Show me the top 5 most expensive products in the ecommerce table.",
+    "provider": "openai",
+    "model_name": "gpt-4o"
 }

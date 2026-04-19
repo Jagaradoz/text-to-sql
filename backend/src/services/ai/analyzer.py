@@ -1,17 +1,16 @@
 import json
 from typing import List, Dict, Any
 from langchain_openai import ChatOpenAI
-from src.config import settings
 
-def analyze_dataframe_schema(table_name: str, df_preview: List[Dict[str, Any]], dtypes_dict: Dict[str, str]) -> List[Dict[str, str]]:
+def analyze_dataframe_schema(table_name: str, df_preview: List[Dict[str, Any]], dtypes_dict: Dict[str, str], api_key: str) -> List[Dict[str, str]]:
     """
     Uses LLM to analyze the provided DataFrame schema information and return 
     a description of the table based on its columns and sample data.
     """
-    if not settings.OPENAI_API_KEY:
-        raise ValueError("OPENAI_API_KEY is not configured.")
+    if not api_key:
+        raise ValueError("OpenAI API key is missing. Please provide it in the X-AI-API-Key header.")
 
-    llm = ChatOpenAI(model="gpt-4o", temperature=0, openai_api_key=settings.OPENAI_API_KEY)
+    llm = ChatOpenAI(model="gpt-4o", temperature=0, openai_api_key=api_key)
     
     schema_info = {
         "table_name": table_name,

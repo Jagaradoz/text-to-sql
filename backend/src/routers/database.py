@@ -132,7 +132,7 @@ def upload_data_schema(
     try:
         df_preview = df.head(3).to_dict(orient="records")
         dtypes_dict = {str(k): str(v) for k, v in df.dtypes.items()}
-        metadata_list = analyze_dataframe_schema(table_name, df_preview, dtypes_dict)
+        metadata_list = analyze_dataframe_schema(table_name, df_preview, dtypes_dict, api_key=x_ai_api_key)
     except Exception as e:
         # We don't fail the upload just because AI analysis failed, but we log/return it.
         metadata_list = [{"table_name": table_name, "description": f"Imported data from {file.filename}"}]
@@ -159,6 +159,11 @@ def upload_data_schema(
     db.commit()
 
     return {
+        "status": "success",
+        "message": f"Successfully processed data file. Tables documented: {', '.join(created_tables)}",
+        "metadata": metadata_list
+    }
+turn {
         "status": "success",
         "message": f"Successfully processed data file. Tables documented: {', '.join(created_tables)}",
         "metadata": metadata_list

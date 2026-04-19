@@ -1,15 +1,17 @@
 import json
-from langchain_openai import ChatOpenAI
+from typing import Optional
 from langchain.agents import create_tool_calling_agent, AgentExecutor
-from src.config import settings
+from .factory import LLMFactory
 from .prompts import prompt
 from .tools import get_database_schema_tool, execute_sql_query_tool, generate_visualization_tool
 
-def run_agent_query(user_input: str) -> dict:
-    if not settings.OPENAI_API_KEY:
-        raise ValueError("OPENAI_API_KEY is not configured in .env.")
-        
-    llm = ChatOpenAI(model="gpt-4o", temperature=0, openai_api_key=settings.OPENAI_API_KEY)
+def run_agent_query(
+    user_input: str, 
+    provider: str = "openai", 
+    api_key: Optional[str] = None, 
+    model_name: Optional[str] = None
+) -> dict:
+    llm = LLMFactory.get_llm(provider, api_key, model_name)
     tools = [get_database_schema_tool, execute_sql_query_tool, generate_visualization_tool]
     agent = create_tool_calling_agent(llm, tools, prompt)
     agent_executor = AgentExecutor(agent=agent, tools=tools, verbose=True)

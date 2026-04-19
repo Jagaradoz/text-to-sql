@@ -1,5 +1,6 @@
 import re
 import sqlparse
+from sqlparse.tokens import DML, DDL
 
 def validate_sql_safety(sql: str) -> bool:
     """
@@ -19,6 +20,18 @@ def validate_sql_safety(sql: str) -> bool:
         raise ValueError("Empty SQL execution is not permitted.")
         
     statement = parsed[0]
+    
+    # 2. Strict DML/DDL token check (prevents CTE bypass)
+    forbidden_keywords = {
+        'INSERT', 'UPDATE', 'DELETE', 'REPLACE', 'MERGE', 'DROP', 
+        'ALTER', 'TRUNCATE', 'GRANT', 'REVOKE', 'COMMIT', 'ROLLBACK', 
+        'EXEC', 'EXECUTE', 'CALL'
+    }
+    
+    for token in statement.flatten():
+        if token.is_keyword or token.ttype in (DML, DDL):
+            if str(token.value).upper() in forbidden_keywords:
+                raise ValueError(f"Safety verification failed. Forbidden command '{str(token.value).upper()}' detected.")
     
     # get_type() removes leading comments and whitespace automatically
     cmd_type = statement.get_type()

@@ -7,15 +7,27 @@ meta {
 post {
   url: http://localhost:8000/api/generate
   body: json
-  auth: inherit
+  auth: none
+}
+
+headers {
+  X-AI-API-Key: YOUR_API_KEY_HERE
 }
 
 body:json {
   {
-    "prompt": "Show me all users from USA"
+    "prompt": "Show me all users from Canada",
+    "provider": "openai",
+    "model_name": "gpt-4o"
   }
 }
 
 docs {
   Invokes the LangChain agent to generate and execute SQL based on the provided prompt.
+  
+  Important Settings:
+  - provider: Set to "openai" (default) or "ollama".
+  - model_name: (Optional) Set to specify the exact model, e.g. "gpt-4o" or "llama3.1".
+  
+  Make sure to replace YOUR_API_KEY_HERE with your actual OpenAI API key in the headers if using OpenAI.
 }
