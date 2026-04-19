@@ -1,9 +1,51 @@
 city,country,current_temp_c,humidity_percent,weather_condition,wind_speed_kph
-Tokyo,Japan,18,65,Partly Cloudy,12
-New York,USA,12,50,Clear,15
-London,UK,9,80,Rainy,20
-Sydney,Australia,22,45,Sunny,10
-Paris,France,11,70,Overcast,8
-Cairo,Egypt,30,20,Sunny,15
-Rio de Janeiro,Brazil,28,75,Humid,5
-Moscow,Russia,4,85,Snowy,12
+Mexico City 1,Mexico,32,74,Partly Cloudy,68
+Mumbai 2,India,22,41,Sunny,29
+London 3,UK,-12,72,Snowy,120
+Sao Paulo 4,Brazil,35,49,Cloudy,133
+Paris 5,France,25,12,Snowy,17
+Seoul 6,South Korea,-8,34,Cloudy,18
+Toronto 7,Canada,-7,49,Sunny,48
+Toronto 8,Canada,15,40,Stormy,31
+Mumbai 9,India,-16,56,Cloudy,146
+Berlin 10,Germany,14,28,Cloudy,78
+Sydney 11,Australia,-3,20,Stormy,76
+Paris 12,France,36,39,Clear,120
+Toronto 13,Canada,40,20,Clear,10
+Berlin 14,Germany,41,74,Partly Cloudy,133
+Dubai 15,UAE,-19,17,Clear,40
+Tokyo 16,Japan,38,81,Stormy,57
+Singapore 17,Singapore,45,12,Rainy,2
+Tokyo 18,Japan,4,75,Stormy,17
+Sao Paulo 19,Brazil,-1,99,Sunny,143
+London 20,UK,-18,31,Clear,75
+Singapore 21,Singapore,25,53,Rainy,29
+Toronto 22,Canada,11,96,Partly Cloudy,8
+Sao Paulo 23,Brazil,-1,67,Stormy,7
+Paris 24,France,1,24,Foggy,147
+Seoul 25,South Korea,-1,90,Rainy,98
+Sydney 26,Australia,41,88,Cloudy,9
+Mumbai 27,India,-10,23,Snowy,139
+Cairo 28,Egypt,38,39,Foggy,121
+Seoul 29,South Korea,6,79,Rainy,114
+Toronto 30,Canada,38,80,Foggy,102
+Berlin 31,Germany,-3,60,Snowy,150
+Sydney 32,Australia,15,25,Partly Cloudy,120
+Tokyo 33,Japan,42,41,Foggy,61
+Moscow 34,Russia,36,23,Snowy,64
+New York 35,USA,9,58,Snowy,14
+Singapore 36,Singapore,17,28,Sunny,45
+Mumbai 37,India,45,17,Snowy,85
+Singapore 38,Singapore,17,78,Stormy,139
+Paris 39,France,41,63,Stormy,8
+Paris 40,France,30,89,Cloudy,105
+Moscow 41,Russia,-13,69,Rainy,74
+Berlin 42,Germany,18,90,Clear,96
+Toronto 43,Canada,-4,78,Cloudy,63
+Moscow 44,Russia,15,15,Sunny,40
+Toronto 45,Canada,19,42,Stormy,113
+Berlin 46,Germany,0,45,Snowy,80
+Paris 47,France,-10,83,Snowy,120
+Seoul 48,South Korea,-17,62,Stormy,87
+Tokyo 49,Japan,43,100,Partly Cloudy,148
+Seoul 50,South Korea,9,47,Sunny,5

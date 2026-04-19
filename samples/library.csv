@@ -1,6 +1,51 @@
 book_id,title,author,published_year,genre,total_copies
-1,1984,George Orwell,1949,Dystopian,10
-2,Harry Potter and the Sorcerer's Stone,J.K. Rowling,1997,Fantasy,15
-3,Foundation,Isaac Asimov,1951,Science Fiction,5
-4,The Great Gatsby,F. Scott Fitzgerald,1925,Tragedy,8
-5,To Kill a Mockingbird,Harper Lee,1960,Southern Gothic,12
+1,The Light,David Miller,1857,Dystopian,80
+2,Flame and Stone,Sarah Taylor,1819,Historical,46
+3,Memory,John Doe,1984,Tragedy,12
+4,The Shadow Memory,James White,1926,Historical,38
+5,The Stone,David Miller,1999,Horror,51
+6,Memory and Flame,Linda Moore,1828,Horror,6
+7,Void,Robert Brown,1913,Tragedy,17
+8,The Memory,Robert Brown,1845,Science Fiction,86
+9,Secret and Journey,Linda Moore,1891,Fantasy,76
+10,The Dark of Empire,Alice Johnson,1875,Mystery,59
+11,The Wind,David Miller,2011,Horror,65
+12,Stone,Emily Davis,1850,Fantasy,74
+13,The Void,Robert Brown,1812,Horror,46
+14,King and Stone,Emily Davis,1926,Dystopian,85
+15,Secret and Memory,David Miller,1800,Historical,45
+16,Memory,James White,1872,Mystery,68
+17,Wind,Alice Johnson,2008,Fantasy,51
+18,Secret,David Miller,1891,Horror,34
+19,Empire and Journey,James White,1832,Biography,38
+20,The Journey,Alice Johnson,1970,Mystery,85
+21,The Hidden King,Linda Moore,1907,Thriller,42
+22,Empire and Empire,Alice Johnson,2020,Biography,73
+23,The Silent of Wind,John Doe,2020,Science Fiction,2
+24,The Void,David Miller,1984,Dystopian,35
+25,The Secret,Michael Wilson,1806,Horror,74
+26,The Dark of Journey,Michael Wilson,1938,Thriller,95
+27,The Golden Secret,Linda Moore,1951,Tragedy,91
+28,The Last of Journey,Michael Wilson,1850,Historical,30
+29,Flame,Linda Moore,2007,Thriller,82
+30,Stone,John Doe,1887,Romance,59
+31,Empire and King,Sarah Taylor,1971,Thriller,10
+32,Flame and Memory,James White,1828,Tragedy,91
+33,Secret and King,Sarah Taylor,2017,Tragedy,86
+34,Light,Alice Johnson,1874,Science Fiction,41
+35,The Last of Void,Jane Smith,1947,Historical,15
+36,The Golden of Journey,John Doe,1870,Tragedy,55
+37,The Journey,Emily Davis,1908,Mystery,50
+38,The Memory,Emily Davis,2008,Biography,79
+39,Empire and Wind,Alice Johnson,1878,Fantasy,39
+40,Memory and Journey,Alice Johnson,1849,Biography,97
+41,King,Alice Johnson,1997,Horror,68
+42,Empire,Robert Brown,1887,Dystopian,51
+43,Memory,Robert Brown,1830,Thriller,25
+44,Journey and Journey,Alice Johnson,1859,Romance,29
+45,The Journey,Robert Brown,1836,Romance,99
+46,The Ancient Memory,Michael Wilson,1862,Thriller,37
+47,The Shadow Journey,David Miller,1845,Thriller,86
+48,The Dark Wind,Michael Wilson,2021,Mystery,100
+49,The Golden of Secret,James White,2023,Tragedy,72
+50,The Light,James White,1826,Historical,96

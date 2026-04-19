@@ -2,6 +2,7 @@
 API_PREFIX = "/api"
 
 # Database / Pagination
+DEFAULT_PAGE_SIZE = 50           # Standard page size for all endpoints
 MAX_RECORDS_LIMIT = 500          # Cap on paginated table records (inspect endpoint)
 
 # AI / Generate

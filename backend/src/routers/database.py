@@ -10,7 +10,7 @@ from src.database.connection import get_db
 from src.services.database.records import inspect_table
 from src.database.models import TableMetadata
 from src.services.ai.analyzer import analyze_dataframe_schema
-from src.constants import MAX_UPLOAD_SIZE
+from src.constants import MAX_UPLOAD_SIZE, DEFAULT_PAGE_SIZE
 
 router = APIRouter()
 
@@ -61,6 +61,8 @@ def schema_overview(db: Session = Depends(get_db)):
 @router.get("/{table_name}", response_model=TableRecordsResponse)
 def inspect_table_endpoint(
     table_name: str,
+    page: int = Query(1, ge=1, description="Page number starting from 1"),
+    limit: int = Query(DEFAULT_PAGE_SIZE, ge=1, le=500, description="Records per page"),
 ):
     """
     Returns a slice of raw records from the specified table (capped at MAX_RECORDS_LIMIT).
@@ -70,7 +72,7 @@ def inspect_table_endpoint(
     allowlist.
     """
     try:
-        result = inspect_table(table_name)
+        result = inspect_table(table_name, page=page, limit=limit)
         return TableRecordsResponse(**result)
     except KeyError as e:
         raise HTTPException(status_code=404, detail=str(e))
