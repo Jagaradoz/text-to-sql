@@ -9,7 +9,7 @@ prompt = ChatPromptTemplate.from_messages([
                "3. Call `execute_sql_query` with your query. Inspect the results to ensure they answer the question.\n"
                "4. Call `generate_visualization` if the data has numeric trends or categories, passing the column names used.\n"
                "5. Final Answer: Return ONLY a JSON object with these exact keys:\n"
-               "   - 'sql': The valid PostgreSQL query you generated.\n"
+               "   - 'sql': The valid PostgreSQL query you generated. (CRITICAL: Do not include markdown formatting, backticks, or SQL comments inside this string. It must be raw SQL.)\n"
                "   - 'explanation': A plain English summary of what the data shows.\n"
                "   - 'chart_config': The JSON object returned by the visualization tool (or {{}} if not applicable).\n"
                "   - 'data_found': A boolean indicating if the query returned any rows.\n\n"

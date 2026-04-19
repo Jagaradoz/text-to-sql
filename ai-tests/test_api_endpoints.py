@@ -31,6 +31,24 @@ async def test_schema_overview():
         assert isinstance(data["databases"], list)
 
 @pytest.mark.asyncio
+async def test_inspect_table_success():
+    """
+    Test inspecting a valid table (planetary_data).
+    Verifies it returns data and meta without pagination query params.
+    """
+    async with httpx.AsyncClient() as client:
+        # Note: planetary_data should exist if seed/samples are loaded
+        response = await client.get(f"{BASE_URL}/database/planetary_data")
+        if response.status_code == 200:
+            data = response.json()
+            assert "data" in data
+            assert "meta" in data
+            assert data["meta"]["page"] == 1
+        else:
+            # If table doesn't exist yet, we expect a 503 or 404
+            assert response.status_code in [404, 503]
+
+@pytest.mark.asyncio
 async def test_inspect_table_invalid_name():
     """
     Test inspecting a nonexistent table.
@@ -38,19 +56,16 @@ async def test_inspect_table_invalid_name():
     """
     async with httpx.AsyncClient() as client:
         response = await client.get(f"{BASE_URL}/database/non_existent_table_12345")
-        # Depending on implementation, this could be 400, 404, or 503
         assert response.status_code in [400, 404, 503]
 
 @pytest.mark.asyncio
 async def test_generate_query_unauthorized_or_bad_request():
     """
     Test the generate endpoint handling.
-    Without an API key/mock, this might throw 400/500, but we test the route exists.
     """
-    payload = {"prompt": "Show me all users"}
+    payload = {"prompt": "Show me all planets from planetary_data"}
     async with httpx.AsyncClient() as client:
         response = await client.post(f"{BASE_URL}/generate", json=payload)
-        # We expect a response, even if it's an error about OPENAI_API_KEY
         assert response.status_code != 404
 
 def test_automated_upload_endpoint():

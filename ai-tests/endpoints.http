@@ -1,5 +1,5 @@
 @baseUrl = http://localhost:8000/api
-@tableName = ecommerce
+@tableName = planetary_data
 
 ### 1. Health Check
 # Verify the backend server is running
@@ -12,8 +12,8 @@ GET {{baseUrl}}/database/schema
 Accept: application/json
 
 ### 3. Inspect Table Data
-# Fetch a paginated slice of records from a specific table (e.g. ecommerce)
-GET {{baseUrl}}/database/{{tableName}}?page=1&limit=10
+# Fetch all records (up to internal cap) from a specific table (e.g. planetary_data)
+GET {{baseUrl}}/database/{{tableName}}
 Accept: application/json
 
 ### 4. Upload CSV/Excel Data (Requires multipart/form-data)

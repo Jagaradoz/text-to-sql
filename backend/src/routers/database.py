@@ -72,6 +72,8 @@ def inspect_table_endpoint(
     try:
         result = inspect_table(table_name)
         return TableRecordsResponse(**result)
+    except KeyError as e:
+        raise HTTPException(status_code=404, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=503, detail=f"Database unreachable: {str(e)}")
 
@@ -117,10 +119,11 @@ def upload_data_schema(
 
     # 2. Insert into Database
     try:
-        engine = db.get_bind()
-        # pandas.to_sql with if_exists='replace' creates the table if it does not exist
-        df.to_sql(name=table_name, con=engine, if_exists="replace", index=False)
+        from src.config import settings
+        df.to_sql(name=table_name, con=settings.DATABASE_URL, if_exists="replace", index=False)
     except Exception as e:
+        import traceback
+        traceback.print_exc()
         raise HTTPException(status_code=500, detail=f"Database Insertion Error: {str(e)}")
 
     # 3. AI Analysis for metadata
