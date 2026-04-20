@@ -42,6 +42,10 @@ body {
   font-feature-settings: "rlig" 1, "calt" 1;
 }
 
+button {
+  cursor: pointer;
+}
+
 /* Shared centered layout container */
 .centered-layout {
   max-width: var(--layout-max-width);

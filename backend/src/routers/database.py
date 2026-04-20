@@ -89,8 +89,8 @@ def upload_data_schema(
 
     # Generate a clean table name from the filename
     base_name = file.filename.rsplit(".", 1)[0]
-    # Strict sanitization: remove all non-alphanumeric characters (including _, -)
-    table_name = re.sub(r'[^a-zA-Z0-9]', '', base_name).lower()
+    # Sanitization: replace non-alphanumeric characters with spaces and collapse multiples
+    table_name = re.sub(r'[^a-zA-Z0-9]+', ' ', base_name).strip().lower()
     
     if not table_name:
         raise HTTPException(status_code=400, detail="The file name must contain at least one letter or number to be used as a database table.")
