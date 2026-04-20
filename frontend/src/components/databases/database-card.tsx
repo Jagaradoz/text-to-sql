@@ -19,10 +19,10 @@ export function DatabaseCard({ db }: { db: DatabaseOverviewItem }) {
       {/* Actions */}
       <div className="flex shrink-0 items-center gap-2">
         <Link
-          href={`/?table=${encodeURIComponent(db.name)}`}
+          href={`/databases/${encodeURIComponent(db.name)}`}
           className="inline-flex items-center gap-1.5 rounded bg-foreground px-4 py-2 text-xs font-semibold uppercase tracking-widest text-background transition hover:opacity-90"
         >
-          Ask Now →
+          Inspect
         </Link>
       </div>
     </div>

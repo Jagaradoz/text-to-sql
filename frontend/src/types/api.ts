@@ -33,8 +33,6 @@ export interface GenerateParams {
   prompt: string;
   provider?: string;
   model_name?: string;
-  page?: number;
-  limit?: number;
 }
 
 export interface PaginationMeta {

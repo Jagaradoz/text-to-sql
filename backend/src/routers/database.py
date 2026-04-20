@@ -1,6 +1,5 @@
 from fastapi import APIRouter, HTTPException, Query, Depends, UploadFile, File, Header
-from pydantic import BaseModel
-from typing import List, Dict, Any, Optional
+from typing import Optional
 from sqlalchemy.orm import Session
 import pandas as pd
 import io
@@ -10,36 +9,10 @@ from src.database.connection import get_db
 from src.services.database.records import inspect_table
 from src.database.models import TableMetadata
 from src.services.ai.analyzer import analyze_dataframe_schema
+from src.schemas.database import DatabaseOverviewItem, DatabaseOverviewResponse, TableRecordsResponse
 from src.constants import MAX_UPLOAD_SIZE, DEFAULT_PAGE_SIZE
 
 router = APIRouter()
-
-
-# --- Pydantic Schemas ---
-
-class DatabaseOverviewItem(BaseModel):
-    name: str
-    description: str
-
-
-class DatabaseOverviewResponse(BaseModel):
-    databases: List[DatabaseOverviewItem]
-
-
-class PaginationMeta(BaseModel):
-    page: int
-    limit: int
-    total_records: int
-    total_pages: int
-
-
-class TableRecordsResponse(BaseModel):
-    table_name: str
-    meta: PaginationMeta
-    data: List[Dict[str, Any]]
-
-
-# --- Endpoints ---
 
 @router.get("/schema", response_model=DatabaseOverviewResponse)
 def schema_overview(db: Session = Depends(get_db)):
@@ -48,7 +21,7 @@ def schema_overview(db: Session = Depends(get_db)):
     sourced from the `table_metadata` database table.
     """
     try:
-        rows = db.query(TableMetadata).order_by(TableMetadata.table_name).all()
+        rows = db.query(TableMetadata).order_by(TableMetadata.id).all()
         databases = [
             DatabaseOverviewItem(name=row.table_name, description=row.description)
             for row in rows
@@ -116,10 +89,14 @@ def upload_data_schema(
 
     # Generate a clean table name from the filename
     base_name = file.filename.rsplit(".", 1)[0]
-    table_name = re.sub(r'[^a-zA-Z0-9_]', '_', base_name).lower()
+    # Strict sanitization: remove all non-alphanumeric characters (including _, -)
+    table_name = re.sub(r'[^a-zA-Z0-9]', '', base_name).lower()
     
+    if not table_name:
+        raise HTTPException(status_code=400, detail="The file name must contain at least one letter or number to be used as a database table.")
+
     # Prefix numeric starts
-    if table_name and table_name[0].isdigit():
+    if table_name[0].isdigit():
         table_name = "t_" + table_name
 
     # 2. Insert into Database

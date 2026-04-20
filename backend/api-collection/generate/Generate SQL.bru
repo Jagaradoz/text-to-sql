@@ -11,15 +11,16 @@ post {
 }
 
 headers {
-  X-AI-API-Key: YOUR_API_KEY_HERE
+  x-ai-api-key: {{openai_api_key}}
 }
 
 body:json {
   {
-    "prompt": "Show me all users from Canada",
+    "prompt": "Show the top 10 most recent orders",
     "provider": "openai",
-    "model_name": "gpt-4o"
+    "model_name": "gpt-4o-mini"
   }
+  
 }
 
 docs {

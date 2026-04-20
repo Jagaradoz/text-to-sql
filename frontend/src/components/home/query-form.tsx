@@ -1,14 +1,15 @@
 import React, { FormEvent } from "react";
-import { LoaderCircle, Send } from "lucide-react";
+import { LoaderCircle, Send, Sparkles } from "lucide-react";
 
 interface QueryFormProps {
   input: string;
   setInput: (value: string) => void;
   isLoading: boolean;
   onSubmit: (e: FormEvent<HTMLFormElement>) => void;
-  apiKey: string;
-  setApiKey: (value: string) => void;
   error: string | null;
+  provider: string;
+  activeModel: string;
+  apiKey: string;
 }
 
 export function QueryForm({
@@ -16,10 +17,13 @@ export function QueryForm({
   setInput,
   isLoading,
   onSubmit,
-  apiKey,
-  setApiKey,
   error,
+  provider,
+  activeModel,
+  apiKey,
 }: QueryFormProps) {
+  const isConfigured = apiKey.startsWith("sk-") || apiKey.startsWith("AIza");
+
   return (
     <form onSubmit={onSubmit}>
       <div className="grid grid-cols-4 gap-4 items-start">
@@ -34,17 +38,17 @@ export function QueryForm({
               className="w-full bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground"
             />
           </div>
-          <div className="flex items-center gap-3 ml-1">
-            <p className="text-[11px] font-medium tracking-wider text-neutral-500">
-              Press {typeof window !== "undefined" && navigator.platform.includes("Mac") ? "⌘" : "Ctrl"}+Enter to run
-            </p>
-            <input
-              type="password"
-              value={apiKey}
-              onChange={(e) => setApiKey(e.target.value)}
-              placeholder="OpenAI API Key"
-              className="rounded border border-border bg-transparent px-2 py-1 text-[11px] text-foreground outline-none placeholder:text-muted-foreground/50 focus:ring-1 focus:ring-ring"
-            />
+          <div className="flex items-center gap-3 ml-1 min-h-[14px]">
+            {isConfigured ? (
+              <div className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60 transition-colors hover:text-muted-foreground">
+                <Sparkles className="h-3 w-3" />
+                {provider}: {activeModel}
+              </div>
+            ) : (
+              <div className="text-[10px] font-bold uppercase tracking-widest text-red-400/60">
+                No API Key configured
+              </div>
+            )}
           </div>
         </div>
 

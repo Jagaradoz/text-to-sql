@@ -22,7 +22,7 @@
   --input: #27272a;
   --ring: #d4d4d8;
   --radius: 0.5rem;
-  --layout-max-width: 56rem;
+  --layout-max-width: 48rem;
 }
 
 @theme inline {

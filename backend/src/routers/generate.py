@@ -3,11 +3,11 @@ import logging
 from datetime import datetime, timezone
 from pathlib import Path
 from fastapi import APIRouter, HTTPException, Header
-from pydantic import BaseModel
 from sqlalchemy import text
-from typing import Union, List, Dict, Any, Optional
+from typing import Optional
 from src.services.ai.agent import run_agent_query
 from src.services.database.sql_validator import validate_sql_safety
+from src.schemas.generate import GenerateRequest, GenerateMeta, GenerateResponse
 from src.constants import GENERATE_LIMIT, DEFAULT_PAGE_SIZE
 
 logger = logging.getLogger(__name__)
@@ -31,30 +31,6 @@ def log_failed_generate(prompt: str, error_message: str):
 
 
 router = APIRouter()
-
-
-class GenerateRequest(BaseModel):
-    prompt: str
-    provider: str = "openai"
-    model_name: Optional[str] = None
-    page: int = 1
-    limit: int = DEFAULT_PAGE_SIZE
-
-
-class GenerateMeta(BaseModel):
-    total_records: int
-    limit: int
-    page: int
-    total_pages: int
-    warning: Optional[str] = None
-
-
-class GenerateResponse(BaseModel):
-    sql: str
-    explanation: str
-    chart_config: dict
-    meta: GenerateMeta
-    data: Union[List[Dict[str, Any]], str]
 
 
 @router.post("", response_model=GenerateResponse)
@@ -84,12 +60,9 @@ def generate(req: GenerateRequest, x_ai_api_key: Optional[str] = Header(None)):
         # Escape colons in the raw SQL so SQLAlchemy does not treat them as bind parameters
         escaped_sql = raw_sql.replace(":", "\\:")
 
-        # Security: Wrap the AI-generated SQL in a subquery with a fixed LIMIT/OFFSET.
-        # raw_sql is validated (single SELECT only, no semicolons) before use.
-        # SQL fragments cannot be parameterized, so f-string is used after validation.
-        safe_sql = f"SELECT * FROM ({escaped_sql}) AS sub LIMIT :limit OFFSET :offset"
-
-        offset = (req.page - 1) * req.limit
+        # pagination is now fixed on backend, handled locally on frontend
+        page_size = GENERATE_LIMIT
+        offset = 0
 
         with engine.connect() as conn:
             # Get total count using a subquery
@@ -100,8 +73,8 @@ def generate(req: GenerateRequest, x_ai_api_key: Optional[str] = Header(None)):
 
             # Execute capped query with parameterized limit and offset
             data_result = conn.execute(
-                text(safe_sql),
-                {"limit": req.limit, "offset": offset}
+                text(f"SELECT * FROM ({escaped_sql}) AS sub LIMIT :limit OFFSET :offset"),
+                {"limit": page_size, "offset": offset}
             )
             rows = [dict(row._mapping) for row in data_result]
 
@@ -115,16 +88,16 @@ def generate(req: GenerateRequest, x_ai_api_key: Optional[str] = Header(None)):
             chart_config=chart_config,
             meta=GenerateMeta(
                 total_records=total_records,
-                limit=req.limit,
-                page=req.page,
-                total_pages=(total_records + req.limit - 1) // req.limit if total_records > 0 else 0,
+                limit=page_size,
+                page=1,
+                total_pages=(total_records + page_size - 1) // page_size if total_records > 0 else 0,
                 warning=warning,
             ),
             data=rows,
         )
     except ValueError as ve:
-        # Validation errors from sql_validator (safety check failures)
-        raise HTTPException(status_code=400, detail="The requested operation is not allowed. Only data retrieval (SELECT) is permitted.")
+        # Validation errors from sql_validator, API key checks, etc.
+        raise HTTPException(status_code=400, detail=str(ve))
     except Exception as e:
         safe_prompt = req.prompt.replace("\n", "\\n").replace("\r", "\\r")
         logger.error(f"Generate failed for prompt '{safe_prompt}': {e}")

@@ -8,3 +8,7 @@ dist/
 build/
 .next/
 .DS_Store
+.pytest_cache/
+logs/
+*.log
+*.jsonl

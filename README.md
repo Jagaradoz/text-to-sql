@@ -29,6 +29,8 @@ The AI operates as an agent with access to specific data tools:
 | FastAPI | REST API framework |
 | PostgreSQL | Core Data Engine (via Docker) |
 | OpenAI API | Natural language understanding and tool calling |
+| Google Gemini | Alternative LLM provider |
+| LangChain | AI orchestration framework |
 | Next.js (App Router) | Frontend React Framework |
 | TailwindCSS | Styling |
 | shadcn/ui | Component primitives |
@@ -39,15 +41,33 @@ The AI operates as an agent with access to specific data tools:
 ```
 text-to-sql/
 ├── backend/
-│   ├── ai/                # OpenAI Langchain logic, prompts, and tool definitions
-│   ├── api/               # FastAPI routers (chat, schema, history)
-│   ├── domain/            # SQL execution parsing, DB interactions, SQLAlchemy mappings
-│   ├── core/              # Environment config, security middleware
-└── frontend/
-    └── src/
-        ├── app/           # Root Next.js pages and layouts
-        ├── features/      # Feature modules (chat, schema-viewer, data-grid, charts)
-        └── shared/        # API client, UI components, state stores (Zustand)
+│   ├── api-collection/    # Bruno API collection & HTTP test files
+│   ├── db/                # PostgreSQL seed SQL (mounted by Docker)
+│   ├── samples/           # Sample CSV files for upload testing
+│   ├── src/
+│   │   ├── config.py      # Environment settings (Pydantic)
+│   │   ├── constants.py   # App-wide constants and limits
+│   │   ├── main.py        # FastAPI entry point
+│   │   ├── database/      # SQLAlchemy engine, models
+│   │   ├── routers/       # FastAPI route handlers
+│   │   ├── schemas/       # Pydantic request/response models
+│   │   └── services/      # Business logic
+│   │       ├── ai/        # LangChain agent, prompts, tools, LLM factory
+│   │       └── database/  # Introspection, records, SQL validation
+│   ├── tests/             # Integration tests (pytest)
+│   ├── .env.example
+│   └── requirements.txt
+├── frontend/
+│   └── src/
+│       ├── app/           # Next.js pages and layouts
+│       ├── components/    # React components by feature
+│       ├── lib/           # API client, utilities
+│       ├── store/         # Zustand state management
+│       └── types/         # TypeScript type definitions
+├── docs/                  # Architecture, PRD, database schema docs
+├── .gitignore
+├── docker-compose.yml
+└── README.md
 ```
 
 ## Evaluation Flow
@@ -66,9 +86,11 @@ Works via chat panel interaction:
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| `POST` | `/api/query/generate` | Accepts natural language; returns SQL, Explanation, Data, and Chart Config |
+| `POST` | `/api/generate` | Accepts natural language; returns SQL, Explanation, Data, and Chart Config |
 | `GET`  | `/api/health` | System health check |
 | `GET`  | `/api/database/schema` | Retrieves table schemas to populate the UI |
+| `GET`  | `/api/database/{table_name}` | Returns paginated records from a specific table |
+| `POST` | `/api/database/upload` | Upload CSV/Excel file to create a new database table |
 
 ## Getting Started
 

@@ -1,19 +1,15 @@
 import React from "react";
 import { Database, LoaderCircle } from "lucide-react";
 import { GenerateResponse } from "@/types/api";
-import { TabKey } from "@/types/home";
 import { DataView } from "./data-view";
-import { VisualizationView } from "./visualization-view";
 import { DetailsView } from "./details-view";
 
 interface ResultsPanelProps {
   activeResult: GenerateResponse | null;
-  activeTab: TabKey;
   currentPage: number;
   isLoading: boolean;
   paginatedRows: Record<string, unknown>[];
   rows: Record<string, unknown>[];
-  setActiveTab: (tab: TabKey) => void;
   setCurrentPage: (page: number) => void;
   tableColumns: string[];
   totalPages: number;
@@ -22,12 +18,10 @@ interface ResultsPanelProps {
 
 export function ResultsPanel({
   activeResult,
-  activeTab,
   currentPage,
   isLoading,
   paginatedRows,
   rows,
-  setActiveTab,
   setCurrentPage,
   tableColumns,
   totalPages,
@@ -58,27 +52,12 @@ export function ResultsPanel({
   }
 
   return (
-    <div>
-      {/* Tabs */}
-      <div className="flex gap-0 border-b border-border">
-        {(["data", "visualization", "details"] as TabKey[]).map((tab) => (
-          <button
-            key={tab}
-            type="button"
-            onClick={() => setActiveTab(tab)}
-            className={`px-5 py-3 text-xs font-semibold uppercase tracking-widest transition ${activeTab === tab
-              ? "border-b-2 border-foreground text-foreground"
-              : "text-muted-foreground hover:text-foreground"
-              }`}
-          >
-            {tab === "data" ? "Data View" : tab === "visualization" ? "Visualization" : "Details"}
-          </button>
-        ))}
-      </div>
-
-      {/* Tab content */}
-      <div className="min-h-[260px]">
-        {activeTab === "data" && (
+    <div className="space-y-6">
+      <div className="min-h-[260px] space-y-3">
+        <p className="px-5 text-base font-bold text-muted-foreground">
+          Table
+        </p>
+        <div className="px-5">
           <DataView
             currentPage={currentPage}
             paginatedRows={paginatedRows}
@@ -88,14 +67,12 @@ export function ResultsPanel({
             totalPages={totalPages}
             pageSize={pageSize}
           />
-        )}
-        {activeTab === "visualization" && activeResult && (
-          <VisualizationView chartConfig={activeResult.chart_config} rows={rows} />
-        )}
-        {activeTab === "details" && activeResult && (
-          <DetailsView explanation={activeResult.explanation} sql={activeResult.sql} />
-        )}
+        </div>
       </div>
+
+      {activeResult && (
+        <DetailsView explanation={activeResult.explanation} sql={activeResult.sql} />
+      )}
     </div>
   );
 }

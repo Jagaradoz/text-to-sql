@@ -9,7 +9,7 @@ The system is designed to transform natural language into safe, verifiable SQL, 
 *   **Backend:** FastAPI (Python), Uvicorn, SQLAlchemy
 *   **Database:** PostgreSQL (Dockerized for development)
 *   **AI Orchestration:** LangChain
-*   **LLM Provider:** OpenAI API (GPT-4o or GPT-3.5-Turbo)
+*   **LLM Provider:** OpenAI API (GPT-4o) / Google Gemini API
 
 ## 3. Core System Data Flow
 The process of turning text into a visualization follows a strict, sequential flow to guarantee security and data integrity.
@@ -24,7 +24,7 @@ sequenceDiagram
     participant DB as PostgreSQL DB
 
     User->>Frontend: Enters Natural Language Query
-    Frontend->>Backend: POST /api/query/generate
+    Frontend->>Backend: POST /api/generate
     
     rect rgb(230, 240, 250)
         Note over Backend,AI: Phase 1: AI Translation
