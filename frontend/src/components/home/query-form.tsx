@@ -26,8 +26,8 @@ export function QueryForm({
 
   return (
     <form onSubmit={onSubmit}>
-      <div className="grid grid-cols-4 gap-4 items-start">
-        <div className="col-span-3 flex flex-col gap-2">
+      <div className="grid grid-cols-1 gap-4 items-start sm:grid-cols-4">
+        <div className="sm:col-span-3 flex flex-col gap-2">
           <div className="rounded-md border border-border bg-card px-4 py-3 transition-focus focus-within:ring-1 focus-within:ring-ring">
             <input
               id="prompt-input"
@@ -56,7 +56,7 @@ export function QueryForm({
           id="execute-btn"
           type="submit"
           disabled={isLoading || input.trim().length === 0}
-          className="col-span-1 inline-flex h-[46px] items-center justify-center gap-2 rounded-md bg-foreground px-5 text-sm font-bold uppercase tracking-widest text-background transition-all hover:opacity-90 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
+          className="w-full sm:col-span-1 inline-flex h-[46px] items-center justify-center gap-2 rounded-md bg-foreground px-5 text-sm font-bold uppercase tracking-widest text-background transition-all hover:opacity-90 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
         >
           {isLoading ? (
             <>
